@@ -60,6 +60,7 @@ internal static class Server
         AuthApi.Map(api);
         MasterApi.Map(api);
         DocumentsApi.Map(api);
+        OrdersApi.Map(api);
         // Unknown paths, and known paths with an unknown method, are a JSON 404.
         app.Map("/api/{**rest}", () => Http.Error(404, "not found"));
 
@@ -80,5 +81,6 @@ internal static class Server
         services.AddScoped<Calendar>();
         services.AddScoped<Ledger>();
         DocumentsApi.AddServices(services);
+        OrdersApi.AddServices(services);
     }
 }

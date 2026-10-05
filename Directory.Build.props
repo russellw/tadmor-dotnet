@@ -1,0 +1,22 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- No ICU: the deployment box need not have libicu, and nothing here
+         formats or compares text by culture. -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+    <!-- Supply chain (docs/stack.md). The lock files pin every package with
+         its SHA-512; locked mode refuses any restore that would change them.
+         tools/vendor.py sync turns locked mode off to re-resolve. -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RestoreLockedMode Condition="'$(RestoreLockedMode)' == ''">true</RestoreLockedMode>
+    <NuGetAudit>false</NuGetAudit>
+
+    <!-- Reproducible output: two builds of a commit are identical. -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+</Project>

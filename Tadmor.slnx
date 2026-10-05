@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Tadmor/Tadmor.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Tadmor.Tests/Tadmor.Tests.csproj" />
+  </Folder>
+</Solution>

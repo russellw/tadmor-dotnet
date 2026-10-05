@@ -22,5 +22,14 @@ The only permitted NuGet packages are those listed in docs/stack.md. New package
 a conversation first. Packages are pinned by lockfile and vendored under vendor/; the
 build restores offline from there and never contacts nuget.org.
 
+Working on it:
+spec/, conformance/, and db/migrations/ are copies from tadmor (spec/UPSTREAM);
+never edit them here. Re-export from tadmor with spec/export.sh.
+Map citext columns with HasColumnType("citext"); as text, comparisons are case-sensitive.
+Test that a query sends a parameter, not a literal: EF Core inlines constants.
+Change packages only through Directory.Packages.props and `make vendor-sync`; commit
+vendor/, vendor/lock.txt, and the packages.lock.json files together.
+Before committing, run `make test`; once the API exists, `make conformance` must pass too.
+
 Version control:
 Commit directly to the default branch. Do not create feature branches.

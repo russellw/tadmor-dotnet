@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <EnableMSTestRunner>true</EnableMSTestRunner>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- As the server has, so that the shared framework's packages are
+         pruned from the graph rather than restored from NuGet. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MSTest.TestFramework" />
+    <PackageReference Include="MSTest.TestAdapter" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Tadmor/Tadmor.csproj" />
+  </ItemGroup>
+</Project>

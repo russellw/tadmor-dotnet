@@ -1,0 +1,20 @@
+# Every package in vendor/nuget: id, version, base64 SHA-512 of the .nupkg.
+# Written by tools/vendor.py sync; verified by tools/vendor.py check.
+Microsoft.ApplicationInsights 2.23.0 3Ul7+tDGXlSk940qFkTz0IVNTNAd2DulBvjV1TY14oFSx8EyEN1d05hXgKqxRqdiDePrrq2O8SxvhwiGdsIVfw==
+Microsoft.AspNetCore.App.Runtime.linux-x64 10.0.12 M3cZRbtrCjFV1aJ0eA2MbIBe2CB3XO56dkqBoRjIyhAKo3luCzk7AqStyr5u4/7an2/SF+6ejhazWtiAcdTlsA==
+Microsoft.EntityFrameworkCore 10.0.12 RMOhWDPnNYra6hKkj7moYkpeTIUV8MBH2arDuGkzxZ4cun7+bD2HQfy4wbWaGufdndBP9VCUWuyiGq1Pv5wbxw==
+Microsoft.EntityFrameworkCore.Abstractions 10.0.12 wHwoTc4A/BwWeWRkPf0azaDyhRNf3K8qYWcAl+v3zsOdP8xe/ikvxSXXme7Vu1Txfc8nH579wUlMOd1RN3Gyqw==
+Microsoft.EntityFrameworkCore.Analyzers 10.0.12 mBajPzL60eP21FdbsXm254MLpiNtlJQI352APp4tlam9Rqy9frtSr+9HUnoABycrBgiiluoOeIDdPqMk3VnPOg==
+Microsoft.EntityFrameworkCore.Relational 10.0.12 2CIHh1kiCQ1QWPjHjr4W8INi/fQMeZT2ZBOd/bE5TWwJhZ+ApygUWrAq1R3NRMuDiwPln0HQeL6vEi/SvoKtdg==
+Microsoft.NETCore.App.Host.linux-x64 10.0.12 toj0lPRN7oDJe02OyTYDBkRW6mUWRn8LeUQWA7o5Rjnbt+7eJUB8ATlwKubVqDYnuOIyAkQMoDwmDC3gdB1yZg==
+Microsoft.NETCore.App.Runtime.linux-x64 10.0.12 FWJ8ixsfc+snzowYyAUlRGHehPjH9xtmLg0owWDV1Ju9dUeZf+OKuBagE+E/flME5Hhx7rObgcSVTXQak/wvGg==
+Microsoft.Testing.Extensions.Telemetry 2.4.1 00z3xJLfXLPCycp4ujI5wlT1GCXaI/n02BDiwUUxNo/BTsc46LbDKcbF9zJrpYeSQMHD06WWSRuMz6Lr+52snw==
+Microsoft.Testing.Extensions.TrxReport.Abstractions 2.4.1 K7TeS84ZFtOjKFtm7l3GDdOfwNMAtNo50to2kKRzwph6TMiy3dhBQSVuSw9hN47AZgAycymt7gdWWk7w25tu5A==
+Microsoft.Testing.Platform 2.4.1 YfnSfQVVPKBgMfk38Go4h7qRZ9mX3hQmj6GdQukhgmsWH5MBNBx0ZctOqAxQTIoc/ZY3hSBZORvt/pdxGbEZPA==
+Microsoft.Testing.Platform.MSBuild 2.4.1 RM545+q2G2HnQw+vEUZg/IPNyf6aRPVFckLQRAR9xgHus/pSSt/rjYi3++aMXrZ16s5jPPZx4UAB7gxvZLl9sQ==
+Microsoft.TestPlatform.ObjectModel 18.9.0 YXk1WgyT0ftXqh3ST49hK5fvaZqSyNsgZCbab1+kO/OJb0HJjtNnUubzAMr0OkdTqYshybN/yand4IyG3QcJRw==
+MSTest.Analyzers 4.4.1 1UqWYQL3XToAqS7beFPG1U3CQxB6GtEa5plt1slZJuseQS593m1hP1xzcVOl8ruJjhU2EajsSjSlkkajwqo9qA==
+MSTest.TestAdapter 4.4.1 nZ+iFglVgiC5IkcjnYsDf99cPq/N11JsSobKMBI2H3OYLpEgZC9Log1ctr9a1Kf1gVbNy/0HbQ0HCDw0fbapXw==
+MSTest.TestFramework 4.4.1 dxF/FFautKrCtE9gXnTKs5v26gnR74r22SD1FLqOB0DoRbW+rIlpi5kdOb52itXltlzHCn5fhYyOKlRYQ2s8qw==
+Npgsql 10.0.3 9wZYlR6r1uLGnAxBuUPOCmgbS6SDtVKyGkZ0tDGPaBHYbbdEDEajD0VErq+W/dn3gHfJ3WvOdZaNNNybnFCupA==
+Npgsql.EntityFrameworkCore.PostgreSQL 10.0.3 poE53ztvi2MB9KUCNIxI0aRu34DOBQwm5YKuCWVAL8NUnXe/A0jiFsOTp1fR950TBSakM7WRWQnvC+u4Qxl3vQ==

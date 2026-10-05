@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>Tadmor</RootNamespace>
+    <!-- Release builds are self-contained linux-x64 (docs/stack.md,
+         "Deployment"); listing the RID here keeps it in the lock file. -->
+    <RuntimeIdentifiers>linux-x64</RuntimeIdentifiers>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <!-- Referenced directly so Microsoft's EF Core patches are taken; the
+         provider alone would resolve the lowest version it allows. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The shared schema travels inside the assembly. -->
+    <EmbeddedResource Include="../../db/migrations/*.up.sql" LogicalName="migrations/%(Filename)%(Extension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Tadmor.Tests" />
+  </ItemGroup>
+</Project>

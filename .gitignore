@@ -55,3 +55,8 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# tadmor-dotnet: the vendored feed is committed (docs/stack.md); the
+# extracted package folder (nuget.config) is not.
+!vendor/nuget/*.nupkg
+.nuget/

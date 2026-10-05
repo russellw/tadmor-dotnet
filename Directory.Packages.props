@@ -1,0 +1,13 @@
+<Project>
+  <!-- The permitted packages (docs/stack.md). New ones need a conversation first. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.12" />
+    <PackageVersion Include="MSTest.TestFramework" Version="4.4.1" />
+    <PackageVersion Include="MSTest.TestAdapter" Version="4.4.1" />
+  </ItemGroup>
+</Project>

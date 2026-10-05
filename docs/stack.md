@@ -169,28 +169,91 @@ particular:
 
 ## Supply-chain posture
 
-To be verified when the project is scaffolded, but the plan is:
+Set up and measured on 2026-10-05.
 
-- **Pinned.** Exact versions, `RestorePackagesWithLockFile` with the
-  committed `packages.lock.json` (it records each package's SHA-512
-  hash), and `RestoreLockedMode` so a restore never changes the lock.
-  Central package management (`Directory.Packages.props`) holds the
-  versions.
-- **Vendored.** Every `.nupkg` is committed under `vendor/nuget/` as a
-  local feed. `nuget.config` clears every other source, so nuget.org is
-  never contacted. `NuGetAudit` is turned off because it would fetch
-  vulnerability data online. Audits are run by hand when vendoring.
-- **No install-time code.** NuGet has no install scripts for SDK-style
-  projects. Packages can ship MSBuild `.props` and `.targets` files that
-  run during the build. Of ours, only the MSTest and
-  Microsoft.Testing.Platform packages do, and they are reviewed as part
-  of vendoring.
-- **Cooldown.** No version published less than 7 days ago, as tadmor's
-  pnpm policy says.
-- **Hermetic build.** The aim is level 4 of tadmor's ladder: a clean
-  clone builds with no network, and two builds are identical
-  (`Deterministic` is the SDK default, and `ContinuousIntegrationBuild`
-  normalizes paths).
+- **Vendored and committed.** Every package is committed, unmodified, as
+  its `.nupkg` in `vendor/nuget/` (76 MB, of which the three runtime packs
+  are 56 MB). `nuget.config` makes that folder the only package source,
+  clears fallback folders and audit sources, and extracts packages into
+  the repository's own `.nuget/packages` (ignored by git) rather than
+  `~/.nuget/packages`, so nothing cached by another project can stand in
+  for a vendored package. `NuGetAudit` is off, because it would fetch
+  vulnerability data online. nuget.org is never contacted.
+- **Pinned twice.** Exact versions are in `Directory.Packages.props`
+  (central package management). Each project's committed
+  `packages.lock.json` records every resolved package with NuGet's content
+  hash, and `RestoreLockedMode` makes restore refuse any change to the
+  lock or any package whose hash differs. `vendor/lock.txt` adds a plain
+  SHA-512 of every `.nupkg`, including the runtime packs, which NuGet
+  fetches as download dependencies and does not put in the lock files.
+- **`tools/vendor.py`** (standard library only) is the whole toolchain.
+  `sync` re-resolves everything from nuget.org into an empty folder, with
+  the solution's restore and the release's linux-x64 restore. It keeps
+  only the packages the lock files and the release name (NuGet also
+  downloads versions it considers and then passes over), refuses any
+  published less than 7 days ago, then replaces `vendor/nuget` and
+  rewrites `vendor/lock.txt`. `check` verifies the feed against
+  `vendor/lock.txt` offline, and that every package the lock files name
+  is vendored. A dependency change is reviewable as a diff of
+  `Directory.Packages.props` and the locks.
+- **Install-time code.** NuGet runs no install scripts for SDK-style
+  projects, but packages can contribute to the build in two ways, and both
+  run with the developer's privileges:
+  - MSBuild `.props` and `.targets` files, imported into the build. EF
+    Core ships one (`Microsoft.EntityFrameworkCore.props`), and the MSTest
+    and Microsoft.Testing.Platform packages ship several.
+  - Roslyn analyzers, DLLs loaded into the compiler:
+    `Microsoft.EntityFrameworkCore.Analyzers` and `MSTest.Analyzers`.
+
+  All of these are Microsoft's, from the packages above. They cannot be
+  blocked without breaking the packages, so they are accepted and
+  reviewed with each vendoring.
+- **Hermetic build: level 4.** Measured as `docs/counterpart-metrics.md`
+  in tadmor describes: two copies of the tree with no `bin/`, `obj/` or
+  `.nuget/`, each built (`make release`, then `make build`) in an
+  `ubuntu:26.04` container with Ubuntu's `dotnet-sdk-10.0` 10.0.112,
+  `--network=none`, and an empty `HOME`. Both builds succeeded, and their
+  outputs were byte-identical: all 339 files of the self-contained
+  release, and `Tadmor.dll` and `Tadmor.Tests.dll`. `Deterministic` and
+  `ContinuousIntegrationBuild` are set in `Directory.Build.props`.
+- **Telemetry off.** The Makefile sets `DOTNET_CLI_TELEMETRY_OPTOUT`,
+  `TESTINGPLATFORM_TELEMETRY_OPTOUT` and
+  `DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE`, so neither the CLI nor
+  the test platform phones home.
+
+| Part | Hermetic level | Install-time code | Manual steps |
+| ---- | -------------- | ----------------- | ------------ |
+| Server and tests | **4** | MSBuild files and analyzers from Microsoft packages (above) | install `dotnet-sdk-10.0` from the OS |
+| Release (self-contained linux-x64) | **4** | as above | none beyond the SDK |
+
+## How the application uses ASP.NET Core
+
+- **One process, one binary.** `src/Tadmor` is the server. `adduser` and
+  `resetdb` are subcommands of the same executable, as in tadmor-java.
+  It reads tadmor's environment variables (`DATABASE_URL`, `HTTP_ADDR`,
+  `PORT`). `DATABASE_URL` stays a libpq-style URL, which `Db/PostgresUrl`
+  turns into an Npgsql connection string, because Npgsql does not parse
+  URLs. Every session runs in UTC, and GSS encryption is off unless the
+  URL asks for it, so Npgsql does not go looking for Kerberos libraries.
+- **Our own migration runner.** `Db/Migrations` applies the embedded
+  `db/migrations/*.up.sql` at startup, as `spec/README.md` describes.
+  Npgsql splits each file into statements itself. After applying
+  anything, it reloads Npgsql's type cache, because on a fresh database
+  that cache was loaded before `citext` existed.
+- **EF Core over the shared tables.** `Db/TadmorDb` maps hand-written
+  entities. A convention turns property names into the schema's
+  snake_case. `citext` columns are mapped as `citext`, so that parameters
+  compared with them are sent as `citext`. Sent as `text`, the comparison
+  would be case-sensitive (tested).
+- **Passwords** use ASP.NET Core Identity's `PasswordHasher`, which is
+  in the shared framework (PBKDF2-HMAC-SHA512, its v3 format). The scheme
+  is not contract (`spec/domain.md` §12).
+- **Tests** are MSTest on Microsoft.Testing.Platform. The test project
+  references the `Microsoft.AspNetCore.App` framework as the server does.
+  Without that, the SDK does not prune the `Microsoft.Extensions.*`
+  packages EF Core asks for, and restores nine of them from NuGet.
+  Integration tests wipe `TEST_DATABASE_URL`, whose name must end in
+  `_test`.
 
 ## Deployment
 
@@ -198,7 +261,8 @@ The SDK from Ubuntu is built from source and carries runtime packs only
 for its own RID, `ubuntu.26.04-x64`. A self-contained publish for that
 RID links against glibc 2.43, so it will not run on the Debian 13
 deployment box (glibc 2.41). A self-contained publish for the portable
-`linux-x64` RID needs glibc 2.27 and was checked to run. It uses
+`linux-x64` RID needs glibc 2.27, and it was checked in a `debian:13`
+container: it starts, migrates, and reports ready. It uses
 Microsoft's three runtime packs from NuGet, which are vendored like the
 other packages.
 

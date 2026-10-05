@@ -16,7 +16,7 @@ this is the record to walk through.
 - **Browser** means a scripted walk-through in headless Chromium on
   2026-10-05. It used tadmor's Playwright install from outside this repo, so
   it is not a dependency here and nothing in the repo runs it. It drove the
-  pages, including `wwwroot/app.js`, against a live server: 43 checks, all
+  pages, including `wwwroot/app.js`, against a live server: 53 checks, all
   passing, among them the line editor's fills and exact previews, the
   confirmation dialogs (dismissed and accepted), and role-based hiding.
 - **Smoke** means the screen was rendered in that browser against a
@@ -59,17 +59,17 @@ this is the record to walk through.
 | D1 | `/sales-invoices`, `/purchase-bills`, `/sales-credit-notes`, `/purchase-credit-notes` | Smoke |
 | D2 | `/{collection}/new` and `/{collection}/{id}/edit`, with the line editor in `app.js` | Browser (product fills description, price, tax code and rate, account; previews 21.999 and 1.8149 exactly; adds and removes lines; saved total equals the preview) |
 | D3 | `/{collection}/{id}` | Test, Browser (journal entry link) |
-| D4 | Post, Edit (not for order-produced documents), Delete; Unpost for administrators; Apply for posted credit notes | Test (post, refused delete, unpost, delete), Browser (no Edit on an order-produced invoice) |
+| D4 | Post, Edit (not for order-produced documents), Delete; Unpost for administrators; Apply for posted credit notes | Test (post, refused delete, unpost, delete), Browser (post, unpost, delete, no Edit on an order-produced invoice); credit-note Apply is the payments' Apply on another settler, Smoke |
 | D5 | "Applied to" on a credit note | Smoke |
 | D6 | The PDF action opens `/api/{collection}/{id}/pdf`, which the session cookie authorizes | Smoke; the PDF itself was checked when the API was built |
 | D7 | Email form: blank means the address on file; shows the address used, or the error | Browser (501 shown, since SMTP is not configured) |
-| P1 to P4 | `/customer-payments`, `/supplier-payments` | Smoke |
+| P1 to P4 | `/customer-payments`, `/supplier-payments` | Browser (create, post, apply, the invoice listed under Applied to), Smoke (lists) |
 | O1 to O4, O7 | `/sales-orders`, `/purchase-orders` | Browser (create, confirm), Smoke |
 | O5 | `/{orders}/{id}/invoice` (or `bill`): remaining quantities filled in and lowerable, then to the new draft | Browser (partial invoice of 2 of 5) |
-| O6 | `/{orders}/{id}/ship` (or `receive`): stocked lines only, then links to the movements created | Smoke |
+| O6 | `/{orders}/{id}/ship` (or `receive`): stocked lines only, then links to the movements created | Browser (receiving a purchase order) |
 | S1 | `/stock-movements` | Smoke |
 | S2 | The movement form: quantity as a magnitude, signed by type; an adjustment keeps its sign | Browser (an issue of 2 saved as −2) |
-| S3 | `/stock-movements/{id}`: a receipt asks for the account to credit, proposing GRNI | Smoke |
+| S3 | `/stock-movements/{id}`: a receipt asks for the account to credit, proposing GRNI | Browser (GRNI proposed; refused visibly without product accounts; then posted) |
 
 ## Reports
 
@@ -84,15 +84,14 @@ this is the record to walk through.
 | Item | Where | Checked |
 | ---- | ----- | ------- |
 | A1 | `/periods` (each period closes or reopens in one step), `/periods/years/{new or id}`, `/periods/{new or id}`. A new period is proposed as the month after the latest | Browser (fiscal year created), Smoke |
-| A2 | `/periods/years/{id}/close`: proposes Retained Earnings and lists what will happen; Reopen year for the latest closed year | Smoke |
+| A2 | `/periods/years/{id}/close`: proposes Retained Earnings and lists what will happen; Reopen year for the latest closed year | Browser (close, then reopen) |
 | A3 | `/exchange-rates` | Smoke |
-| A4, A5 | `/bank-statements`, `/bank-statements/{id}` | Smoke |
+| A4, A5 | `/bank-statements`, `/bank-statements/{id}` | Browser (create, CSV import, auto-match, reconcile, reopen), Smoke (manual match, unmatch, add and delete lines) |
 
-## Owed
+## Not yet driven end to end
 
-These items render correctly, but their actions have not yet been driven
-end to end through the UI. The services behind them pass the conformance
-suite: applying payments and credit notes (D4, P3), shipping and receiving
-(O6), posting a receipt (S3), closing and reopening a year (A2), and
-statement matching, import, and reconciliation (A5). Extending
-`UiTests` to cover them is the next step.
+These render, and the services behind them pass the conformance suite, but
+no check has clicked them through the UI: a credit note's Apply, shipping
+a sales order (receiving was driven), and a statement's manual match,
+unmatch, and line deletion. The browser walk-through is not in this repo;
+moving its flows into `UiTests` would make them repeatable.

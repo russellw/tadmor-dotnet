@@ -19,7 +19,7 @@ tests/Tadmor.Tests/  MSTest tests (unit, and integration against TEST_DATABASE_U
 db/migrations/       the shared schema, copied from tadmor (spec/UPSTREAM)
 spec/, conformance/  the specification and black-box suite, copied from tadmor
 vendor/nuget/        every NuGet package, committed; restore reads only this
-tools/               vendor.py (maintains vendor/), conformance.sh
+tools/               vendor.py (maintains vendor/ and dependencies.json), conformance.sh
 docs/                stack.md
 ```
 
@@ -48,7 +48,7 @@ make run          # build and run the server (migrates on start)
 make test         # run the tests (wipes TEST_DATABASE_URL)
 make conformance  # run tadmor's suite against a fresh server (wipes the _conformance DB)
 make release      # self-contained linux-x64 server in bin/release
-make vendor-check # verify vendor/nuget against vendor/lock.txt (offline)
+make vendor-check # verify vendor/nuget, the locks, and dependencies.json (offline)
 make vendor-sync  # re-resolve vendor/nuget from nuget.org (online, 7-day cooldown)
 ```
 

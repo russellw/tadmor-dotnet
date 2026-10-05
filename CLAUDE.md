@@ -37,7 +37,7 @@ never edit them here. Re-export from tadmor with spec/export.sh.
 Map citext columns with HasColumnType("citext"); as text, comparisons are case-sensitive.
 Test that a query sends a parameter, not a literal: EF Core inlines constants.
 Change packages only through Directory.Packages.props and `make vendor-sync`; commit
-vendor/, vendor/lock.txt, and the packages.lock.json files together.
+vendor/, vendor/lock.txt, the packages.lock.json files, and dependencies.json together.
 Before committing, run `make test` and `make conformance`; both must pass.
 
 Version control:

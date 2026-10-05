@@ -13,8 +13,15 @@ thing that talks to nuget.org (docs/stack.md, "Supply-chain posture"):
                           vendor/nuget and write vendor/lock.txt.
   tools/vendor.py check   Verify vendor/nuget against vendor/lock.txt,
                           offline: every locked package present with its
-                          SHA-512, nothing else, and every package that the
-                          packages.lock.json files name locked.
+                          SHA-512, nothing else, every package that the
+                          packages.lock.json files name locked, and
+                          dependencies.json listing exactly those packages.
+  tools/vendor.py manifest
+                          Write dependencies.json, the manifest tadmor's
+                          tools/measure.py reads (tadmor's
+                          docs/counterpart-metrics.md): every package with
+                          its category and the NuGet owner accounts that
+                          can publish it, looked up online. sync runs it.
 
 The packages.lock.json files carry NuGet's own content hashes, which for a
 signed package leave out the signature, so they are not the file's SHA-512.
@@ -41,6 +48,7 @@ import sys
 import tempfile
 import urllib.request
 import xml.etree.ElementTree as ET
+import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -49,6 +57,9 @@ LOCK = ROOT / "vendor" / "lock.txt"
 SOLUTION = ROOT / "Tadmor.slnx"
 SERVER = ROOT / "src" / "Tadmor" / "Tadmor.csproj"
 REGISTRATION = "https://api.nuget.org/v3/registration5-gz-semver2/"
+SEARCH = "https://azuresearch-usnc.nuget.org/query?q=packageid:{}&prerelease=true&semVerLevel=2.0.0"
+MANIFEST = ROOT / "dependencies.json"
+SERVER_LOCK = ROOT / "src" / "Tadmor" / "packages.lock.json"
 COOLDOWN = datetime.timedelta(days=7)
 
 ONLINE_CONFIG = """<?xml version="1.0" encoding="utf-8"?>
@@ -171,6 +182,7 @@ def sync():
             "# Written by tools/vendor.py sync; verified by tools/vendor.py check.\n"
             + "\n".join(lines) + "\n")
     print(f"vendored {len(lines)} packages into {FEED.relative_to(ROOT)}")
+    manifest()
     check()
 
 
@@ -193,15 +205,87 @@ def check():
     vendored = {(i.lower(), v.lower()) for i, v, _ in locked.values()}
     for package_id, version in sorted(locked_identities() - vendored):
         problems.append(f"{package_id} {version} is in a packages.lock.json but not vendored")
+    check_manifest(problems)
     if problems:
         raise SystemExit("\n".join(problems))
     print(f"vendor/nuget matches vendor/lock.txt ({len(locked)} packages)")
 
 
+def categorized():
+    """(id, version) -> category. The server's packages are runtime; what
+    only the tests add is test. The runtime packs (download dependencies)
+    are the .NET runtime itself, which the manifest lists as a toolchain."""
+    def packages(lock_file):
+        found = {}
+        for target in json.loads(lock_file.read_text())["dependencies"].values():
+            for package_id, entry in target.items():
+                if entry.get("type") != "Project":
+                    found[(package_id, entry["resolved"])] = True
+        return found
+    runtime = packages(SERVER_LOCK)
+    out = {key: "runtime" for key in runtime}
+    for lock_file in lock_files():
+        if lock_file != SERVER_LOCK:
+            for key in packages(lock_file):
+                out.setdefault(key, "test")
+    return out
+
+
+def owners(package_id):
+    """The NuGet accounts that can publish the package (owners are per package)."""
+    with urllib.request.urlopen(SEARCH.format(package_id.lower()), timeout=30) as resp:
+        data = json.load(resp)["data"]
+    match = [d for d in data if d["id"].lower() == package_id.lower()]
+    return sorted(f"nuget:{o}" for o in match[0]["owners"]) if match else None
+
+
+def unpacked_bytes(package_id, version):
+    with zipfile.ZipFile(FEED / f"{package_id.lower()}.{version.lower()}.nupkg") as z:
+        return sum(i.file_size for i in z.infolist())
+
+
+def manifest():
+    """Writes dependencies.json (tadmor's docs/counterpart-metrics.md)."""
+    cats = categorized()
+    packages = []
+    for (package_id, version), category in sorted(cats.items(), key=lambda kv: (kv[1], kv[0][0].lower())):
+        packages.append({
+            "ecosystem": "nuget", "name": package_id, "version": version, "category": category,
+            "identities": owners(package_id), "evidence": SEARCH.format(package_id.lower()),
+        })
+    sources = []
+    for category in ("runtime", "test"):
+        keys = [k for k, c in cats.items() if c == category]
+        sources.append({"label": f"NuGet packages ({category}, unpacked)",
+                        "bytes": sum(unpacked_bytes(*k) for k in keys), "lines": None})
+    doc = {
+        "format": "tadmor-dependencies/1",
+        "generator": "tools/vendor.py manifest (tadmor-dotnet)",
+        "platform": "linux/x64",
+        "toolchains": [
+            "Microsoft .NET SDK 10.0 (Ubuntu's dotnet-sdk-10.0 build)",
+            "Microsoft .NET runtime packs from NuGet, bundled into the self-contained release",
+        ],
+        "packages": packages,
+        "sources": sources,
+    }
+    MANIFEST.write_text(json.dumps(doc, indent=1) + "\n")
+    print(f"wrote {MANIFEST.relative_to(ROOT)}: {len(packages)} packages")
+
+
+def check_manifest(problems):
+    if not MANIFEST.exists():
+        problems.append("dependencies.json is missing; run tools/vendor.py manifest")
+        return
+    listed = {(p["name"], p["version"]): p["category"] for p in json.loads(MANIFEST.read_text())["packages"]}
+    if listed != categorized():
+        problems.append("dependencies.json does not list the locked packages; run tools/vendor.py manifest")
+
+
 def main():
-    commands = {"sync": sync, "check": check}
+    commands = {"sync": sync, "check": check, "manifest": manifest}
     if len(sys.argv) != 2 or sys.argv[1] not in commands:
-        raise SystemExit("usage: tools/vendor.py sync|check")
+        raise SystemExit("usage: tools/vendor.py sync|check|manifest")
     commands[sys.argv[1]]()
 
 

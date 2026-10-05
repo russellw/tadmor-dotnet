@@ -1,0 +1,198 @@
+{
+ "format": "tadmor-dependencies/1",
+ "generator": "tools/vendor.py manifest (tadmor-dotnet)",
+ "platform": "linux/x64",
+ "toolchains": [
+  "Microsoft .NET SDK 10.0 (Ubuntu's dotnet-sdk-10.0 build)",
+  "Microsoft .NET runtime packs from NuGet, bundled into the self-contained release"
+ ],
+ "packages": [
+  {
+   "ecosystem": "nuget",
+   "name": "Microsoft.EntityFrameworkCore",
+   "version": "10.0.12",
+   "category": "runtime",
+   "identities": [
+    "nuget:EntityFramework",
+    "nuget:Microsoft",
+    "nuget:aspnet",
+    "nuget:dotnetframework"
+   ],
+   "evidence": "https://azuresearch-usnc.nuget.org/query?q=packageid:microsoft.entityframeworkcore&prerelease=true&semVerLevel=2.0.0"
+  },
+  {
+   "ecosystem": "nuget",
+   "name": "Microsoft.EntityFrameworkCore.Abstractions",
+   "version": "10.0.12",
+   "category": "runtime",
+   "identities": [
+    "nuget:EntityFramework",
+    "nuget:Microsoft",
+    "nuget:aspnet",
+    "nuget:dotnetframework"
+   ],
+   "evidence": "https://azuresearch-usnc.nuget.org/query?q=packageid:microsoft.entityframeworkcore.abstractions&prerelease=true&semVerLevel=2.0.0"
+  },
+  {
+   "ecosystem": "nuget",
+   "name": "Microsoft.EntityFrameworkCore.Analyzers",
+   "version": "10.0.12",
+   "category": "runtime",
+   "identities": [
+    "nuget:EntityFramework",
+    "nuget:Microsoft",
+    "nuget:aspnet",
+    "nuget:dotnetframework"
+   ],
+   "evidence": "https://azuresearch-usnc.nuget.org/query?q=packageid:microsoft.entityframeworkcore.analyzers&prerelease=true&semVerLevel=2.0.0"
+  },
+  {
+   "ecosystem": "nuget",
+   "name": "Microsoft.EntityFrameworkCore.Relational",
+   "version": "10.0.12",
+   "category": "runtime",
+   "identities": [
+    "nuget:EntityFramework",
+    "nuget:Microsoft",
+    "nuget:aspnet",
+    "nuget:dotnetframework"
+   ],
+   "evidence": "https://azuresearch-usnc.nuget.org/query?q=packageid:microsoft.entityframeworkcore.relational&prerelease=true&semVerLevel=2.0.0"
+  },
+  {
+   "ecosystem": "nuget",
+   "name": "Npgsql",
+   "version": "10.0.3",
+   "category": "runtime",
+   "identities": [
+    "nuget:Npgsql",
+    "nuget:brar",
+    "nuget:ninofloris",
+    "nuget:roji"
+   ],
+   "evidence": "https://azuresearch-usnc.nuget.org/query?q=packageid:npgsql&prerelease=true&semVerLevel=2.0.0"
+  },
+  {
+   "ecosystem": "nuget",
+   "name": "Npgsql.EntityFrameworkCore.PostgreSQL",
+   "version": "10.0.3",
+   "category": "runtime",
+   "identities": [
+    "nuget:Npgsql",
+    "nuget:roji"
+   ],
+   "evidence": "https://azuresearch-usnc.nuget.org/query?q=packageid:npgsql.entityframeworkcore.postgresql&prerelease=true&semVerLevel=2.0.0"
+  },
+  {
+   "ecosystem": "nuget",
+   "name": "Microsoft.ApplicationInsights",
+   "version": "2.23.0",
+   "category": "test",
+   "identities": [
+    "nuget:AppInsightsSdk",
+    "nuget:Microsoft"
+   ],
+   "evidence": "https://azuresearch-usnc.nuget.org/query?q=packageid:microsoft.applicationinsights&prerelease=true&semVerLevel=2.0.0"
+  },
+  {
+   "ecosystem": "nuget",
+   "name": "Microsoft.Testing.Extensions.Telemetry",
+   "version": "2.4.1",
+   "category": "test",
+   "identities": [
+    "nuget:MSTestFramework",
+    "nuget:Microsoft"
+   ],
+   "evidence": "https://azuresearch-usnc.nuget.org/query?q=packageid:microsoft.testing.extensions.telemetry&prerelease=true&semVerLevel=2.0.0"
+  },
+  {
+   "ecosystem": "nuget",
+   "name": "Microsoft.Testing.Extensions.TrxReport.Abstractions",
+   "version": "2.4.1",
+   "category": "test",
+   "identities": [
+    "nuget:MSTestFramework",
+    "nuget:Microsoft"
+   ],
+   "evidence": "https://azuresearch-usnc.nuget.org/query?q=packageid:microsoft.testing.extensions.trxreport.abstractions&prerelease=true&semVerLevel=2.0.0"
+  },
+  {
+   "ecosystem": "nuget",
+   "name": "Microsoft.Testing.Platform",
+   "version": "2.4.1",
+   "category": "test",
+   "identities": [
+    "nuget:MSTestFramework",
+    "nuget:Microsoft"
+   ],
+   "evidence": "https://azuresearch-usnc.nuget.org/query?q=packageid:microsoft.testing.platform&prerelease=true&semVerLevel=2.0.0"
+  },
+  {
+   "ecosystem": "nuget",
+   "name": "Microsoft.Testing.Platform.MSBuild",
+   "version": "2.4.1",
+   "category": "test",
+   "identities": [
+    "nuget:MSTestFramework",
+    "nuget:Microsoft"
+   ],
+   "evidence": "https://azuresearch-usnc.nuget.org/query?q=packageid:microsoft.testing.platform.msbuild&prerelease=true&semVerLevel=2.0.0"
+  },
+  {
+   "ecosystem": "nuget",
+   "name": "Microsoft.TestPlatform.ObjectModel",
+   "version": "18.9.0",
+   "category": "test",
+   "identities": [
+    "nuget:Microsoft",
+    "nuget:vstest"
+   ],
+   "evidence": "https://azuresearch-usnc.nuget.org/query?q=packageid:microsoft.testplatform.objectmodel&prerelease=true&semVerLevel=2.0.0"
+  },
+  {
+   "ecosystem": "nuget",
+   "name": "MSTest.Analyzers",
+   "version": "4.4.1",
+   "category": "test",
+   "identities": [
+    "nuget:MSTestFramework",
+    "nuget:Microsoft"
+   ],
+   "evidence": "https://azuresearch-usnc.nuget.org/query?q=packageid:mstest.analyzers&prerelease=true&semVerLevel=2.0.0"
+  },
+  {
+   "ecosystem": "nuget",
+   "name": "MSTest.TestAdapter",
+   "version": "4.4.1",
+   "category": "test",
+   "identities": [
+    "nuget:MSTestFramework",
+    "nuget:Microsoft"
+   ],
+   "evidence": "https://azuresearch-usnc.nuget.org/query?q=packageid:mstest.testadapter&prerelease=true&semVerLevel=2.0.0"
+  },
+  {
+   "ecosystem": "nuget",
+   "name": "MSTest.TestFramework",
+   "version": "4.4.1",
+   "category": "test",
+   "identities": [
+    "nuget:MSTestFramework",
+    "nuget:Microsoft"
+   ],
+   "evidence": "https://azuresearch-usnc.nuget.org/query?q=packageid:mstest.testframework&prerelease=true&semVerLevel=2.0.0"
+  }
+ ],
+ "sources": [
+  {
+   "label": "NuGet packages (runtime, unpacked)",
+   "bytes": 27280035,
+   "lines": null
+  },
+  {
+   "label": "NuGet packages (test, unpacked)",
+   "bytes": 47451892,
+   "lines": null
+  }
+ ]
+}

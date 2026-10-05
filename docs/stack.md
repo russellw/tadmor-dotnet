@@ -145,9 +145,14 @@ Microsoft publishes under several organizational accounts (`Microsoft`,
 `vstest`, `AppInsightsSdk`), so the account count overstates the
 distinct parties trusted. Counted as tadmor counts Go modules, by
 organization, the runtime is **two identities** (Microsoft, the Npgsql
-project), the same number as tadmor's Go backend. `tools/measure.py` in
-tadmor does not yet handle NuGet, and these figures are a careful hand
-count until it does.
+project), the same number as tadmor's Go backend.
+
+These figures are reproducible. `tools/vendor.py manifest` writes
+`dependencies.json`, the dependency manifest tadmor's
+`docs/counterpart-metrics.md` defines: every package, its category, and
+its NuGet owner accounts, each with the URL they were read from.
+tadmor's `tools/measure.py` reads it (`tools/measure.py ../tadmor-dotnet`)
+and reports the same counts as the tables above.
 
 ## Permitted packages
 
@@ -186,7 +191,10 @@ Set up and measured on 2026-10-05.
   lock or any package whose hash differs. `vendor/lock.txt` adds a plain
   SHA-512 of every `.nupkg`, including the runtime packs, which NuGet
   fetches as download dependencies and does not put in the lock files.
-- **`tools/vendor.py`** (standard library only) is the whole toolchain.
+- **`tools/vendor.py`** (standard library only) is the whole toolchain,
+  and it also writes the dependency manifest, `dependencies.json`
+  (`manifest`, which `sync` runs; `check` verifies that the manifest lists
+  exactly the locked packages).
   `sync` re-resolves everything from nuget.org into an empty folder, with
   the solution's restore and the release's linux-x64 restore. It keeps
   only the packages the lock files and the release name (NuGet also

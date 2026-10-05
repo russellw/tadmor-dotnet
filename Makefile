@@ -47,7 +47,7 @@ release: ## Publish the self-contained linux-x64 server into bin/release
 clean: ## Remove build output
 	rm -rf bin src/*/bin src/*/obj tests/*/bin tests/*/obj
 
-vendor-check: ## Verify vendor/nuget matches vendor/lock.txt (offline)
+vendor-check: ## Verify vendor/nuget, the locks, and dependencies.json (offline)
 	tools/vendor.py check
 
 vendor-sync: ## Re-resolve vendor/nuget from nuget.org and rewrite the locks (network)

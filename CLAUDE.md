@@ -23,7 +23,10 @@ a conversation first. Packages are pinned by lockfile and vendored under vendor/
 build restores offline from there and never contacts nuget.org.
 
 Working on it:
-Business rules live in src/Tadmor/Services/, shared by the JSON API (Api/) and the UI.
+Business rules live in src/Tadmor/Services/, shared by the JSON API (Api/) and the UI
+(Pages/, with helpers in Ui/). UI forms post fields named as in the API; Ui/FormInput turns
+them into the same Input. wwwroot/app.js is the only script and app.css the only stylesheet;
+the CSP forbids inline script and style, so never add style="" or <script> blocks with code.
 Services throw ServiceException carrying the spec's HTTP status; refusals by the schema
 are mapped by SQLSTATE (DatabaseErrors). Never put a rule in an endpoint.
 Money arithmetic that rounds (base amounts, FX differences) is done in SQL, where numeric

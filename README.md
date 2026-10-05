@@ -13,7 +13,8 @@ trees, and the supply-chain setup.
 ## Layout
 
 ```
-src/Tadmor/          the server (also the adduser and resetdb commands)
+src/Tadmor/          the server (also the adduser and resetdb commands):
+                     Services/ business rules, Api/ JSON endpoints, Pages/ and Ui/ the UI
 tests/Tadmor.Tests/  MSTest tests (unit, and integration against TEST_DATABASE_URL)
 db/migrations/       the shared schema, copied from tadmor (spec/UPSTREAM)
 spec/, conformance/  the specification and black-box suite, copied from tadmor
@@ -57,8 +58,11 @@ Create or reset a login (the password is the first line of stdin):
 echo 'a-long-password' | make adduser EMAIL=you@example.com NAME='Your Name'
 ```
 
-The server applies pending migrations on startup. Endpoints: `GET /healthz`
-(liveness) and `GET /readyz` (database reachable).
+The server applies pending migrations on startup. The UI is at `/` (sign in
+with a login created by `adduser`), the JSON API under `/api/`, and the
+probes at `GET /healthz` (liveness) and `GET /readyz` (database reachable).
+`docs/ui-coverage.md` records how each item of the spec's UI checklist was
+checked.
 
 ## Deployment
 

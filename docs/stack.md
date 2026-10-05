@@ -275,12 +275,32 @@ Set up and measured on 2026-10-05.
   `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`). With credentials it requires
   STARTTLS. Without `SMTP_ADDR`, sending is refused with 501, as in the
   conformance run.
+- **The UI** is Razor Pages (`Pages/`) over the same services, with
+  helpers in `Ui/`. Forms post fields named as in the API, and
+  `Ui/FormInput` turns a posted form into the `Input` the API reads, so
+  both apply one set of rules. A refusal re-shows the page with the
+  server's message. Master data uses one generic list and form, driven by
+  descriptors (`Ui/Resources`). The four line documents, two payments, and
+  two orders each share their pages, and the services are resolved by
+  collection name as keyed services. Sessions are the API's: the same
+  cookie, with UI paths redirected to `/login`. Razor's anti-forgery
+  tokens protect every form.
+- **One script, one stylesheet, nothing inline.** `wwwroot/app.js` runs
+  the line editor (fills and exact BigInt previews that round as the
+  server does) and the delete confirmations, adapted from tadmor-java's.
+  `wwwroot/app.css` is the only stylesheet. Every page carries a
+  same-origin Content Security Policy. Both files are copied beside the
+  executable on build, and the content root is the executable's
+  directory, so the server runs from any working directory.
 - **Tests** are MSTest on Microsoft.Testing.Platform. The test project
   references the `Microsoft.AspNetCore.App` framework as the server does.
   Without that, the SDK does not prune the `Microsoft.Extensions.*`
   packages EF Core asks for, and restores nine of them from NuGet.
   Integration tests wipe `TEST_DATABASE_URL`, whose name must end in
-  `_test`.
+  `_test`. The UI tests start the real server in-process on a random port
+  (`Server.BuildAsync`) and drive it over HTTP as a browser would, so
+  they need no test-host package. `docs/ui-coverage.md` records how each
+  item of the UI checklist was checked.
 
 ## Deployment
 

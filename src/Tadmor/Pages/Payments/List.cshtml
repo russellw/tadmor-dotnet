@@ -1,0 +1,31 @@
+@page "/{kind:regex(^(customer-payments|supplier-payments)$)}"
+@model Tadmor.Pages.Payments.ListModel
+@{
+    var k = Model.Kind;
+    ViewData["Title"] = Names.Plural(k.Collection);
+}
+<p class="actions"><a class="button" href="/@k.Collection/new">New @Names.Singular(k.Collection)</a></p>
+<table class="list">
+    <thead><tr><th>Payment</th><th>@Names.Party(k.Sales)</th><th>Date</th><th>Method</th><th class="num">Amount</th>
+        <th class="num">Applied</th><th class="num">Unapplied</th><th>Status</th></tr></thead>
+    <tbody>
+    @foreach (var p in Model.Rows)
+    {
+        var cur = (string?)p["currency_code"];
+        <tr>
+            <td><a href="/@k.Collection/@p["id"]">#@p["id"]</a></td>
+            <td>@Model.PartyName(p[k.PartyField])</td>
+            <td>@Format.Raw(p["payment_date"])</td>
+            <td>@p["method"]</td>
+            <td class="num">@Format.Money((decimal?)p["amount"], cur)</td>
+            <td class="num">@Format.Money((decimal?)p["amount_applied"], cur)</td>
+            <td class="num">@Format.Money((decimal?)p["unapplied"], cur)</td>
+            <td><span class="status">@p["status"]</span></td>
+        </tr>
+    }
+    @if (Model.Rows.Count == 0)
+    {
+        <tr><td colspan="8" class="empty">None yet.</td></tr>
+    }
+    </tbody>
+</table>

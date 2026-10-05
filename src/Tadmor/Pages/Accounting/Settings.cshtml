@@ -1,0 +1,32 @@
+@page "/settings"
+@model Tadmor.Pages.Accounting.SettingsModel
+@{
+    ViewData["Title"] = "Settings";
+}
+<partial name="_Error" model="Model.Error" />
+@if (Model.Me.IsAdmin)
+{
+    <form method="post" class="form">
+        <label>Base currency
+            <select name="base_currency" required>
+                @foreach (var c in Model.Currencies) { <option value="@c.Value" selected="@(Model.V("base_currency") == c.Value)">@c.Label</option> }
+            </select>
+        </label>
+        <p class="muted">The base currency cannot change once any journal entry exists.</p>
+        <label>FX gain/loss account
+            <select name="fx_gain_loss_account_id">
+                <option value=""></option>
+                @foreach (var a in Model.Accounts) { <option value="@a.Value" selected="@(Model.V("fx_gain_loss_account_id") == a.Value)">@a.Label</option> }
+            </select>
+        </label>
+        <p class="actions"><button type="submit">Save</button></p>
+    </form>
+}
+else
+{
+    <dl class="facts">
+        <dt>Base currency</dt><dd>@Model.V("base_currency")</dd>
+        <dt>FX gain/loss account</dt><dd>@Model.FxLabel</dd>
+    </dl>
+    <p class="muted">Only an administrator can change these.</p>
+}

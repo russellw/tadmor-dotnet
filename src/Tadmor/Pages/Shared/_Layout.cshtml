@@ -1,0 +1,84 @@
+@{
+    var me = Context.Items["tadmor.user"] as CurrentUser;
+    string Here(string href) => Context.Request.Path.StartsWithSegments(href) ? "here" : "";
+}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@(ViewData["Title"] is string t ? t + " · " : "")tadmor</title>
+    <link rel="stylesheet" href="/app.css">
+    <script src="/app.js" defer></script>
+</head>
+<body>
+@if (me is null)
+{
+    <main class="bare">@RenderBody()</main>
+}
+else
+{
+    <header class="top">
+        <a class="brand" href="/">tadmor</a>
+        <span class="who">@me.FullName@(me.IsAdmin ? " (administrator)" : "")</span>
+        <form method="post" asp-page="/Login" asp-page-handler="logout" class="inline">
+            <button type="submit" class="link">Sign out</button>
+        </form>
+    </header>
+    <div class="frame">
+        <nav class="side">
+            <a href="/" class="@(Context.Request.Path == "/" ? "here" : "")">Home</a>
+            <h4>Sales</h4>
+            <a href="/customers" class="@Here("/customers")">Customers</a>
+            <a href="/sales-orders" class="@Here("/sales-orders")">Sales orders</a>
+            <a href="/sales-invoices" class="@Here("/sales-invoices")">Invoices</a>
+            <a href="/sales-credit-notes" class="@Here("/sales-credit-notes")">Credit notes</a>
+            <a href="/customer-payments" class="@Here("/customer-payments")">Customer payments</a>
+            <h4>Purchasing</h4>
+            <a href="/suppliers" class="@Here("/suppliers")">Suppliers</a>
+            <a href="/purchase-orders" class="@Here("/purchase-orders")">Purchase orders</a>
+            <a href="/purchase-bills" class="@Here("/purchase-bills")">Bills</a>
+            <a href="/purchase-credit-notes" class="@Here("/purchase-credit-notes")">Supplier credits</a>
+            <a href="/supplier-payments" class="@Here("/supplier-payments")">Supplier payments</a>
+            <h4>Inventory</h4>
+            <a href="/products" class="@Here("/products")">Products</a>
+            <a href="/warehouses" class="@Here("/warehouses")">Warehouses</a>
+            <a href="/stock-movements" class="@Here("/stock-movements")">Stock movements</a>
+            <h4>Accounting</h4>
+            <a href="/accounts" class="@Here("/accounts")">Chart of accounts</a>
+            <a href="/periods" class="@Here("/periods")">Fiscal periods</a>
+            <a href="/exchange-rates" class="@Here("/exchange-rates")">Exchange rates</a>
+            <a href="/bank-statements" class="@Here("/bank-statements")">Bank statements</a>
+            <a href="/tax-codes" class="@Here("/tax-codes")">Tax codes</a>
+            <a href="/payment-terms" class="@Here("/payment-terms")">Payment terms</a>
+            <h4>Reports</h4>
+            <a href="/reports/profit-and-loss" class="@Here("/reports/profit-and-loss")">Profit and loss</a>
+            <a href="/reports/balance-sheet" class="@Here("/reports/balance-sheet")">Balance sheet</a>
+            <a href="/reports/cash-flow" class="@Here("/reports/cash-flow")">Cash flow</a>
+            <a href="/reports/trial-balance" class="@Here("/reports/trial-balance")">Trial balance</a>
+            <a href="/reports/ar-aging" class="@Here("/reports/ar-aging")">AR aging</a>
+            <a href="/reports/ap-aging" class="@Here("/reports/ap-aging")">AP aging</a>
+            <a href="/reports/inventory-valuation" class="@Here("/reports/inventory-valuation")">Inventory valuation</a>
+            <h4>Administration</h4>
+            <a href="/organizations" class="@Here("/organizations")">Organizations</a>
+            @if (me.IsAdmin)
+            {
+                <a href="/users" class="@Here("/users")">Users</a>
+            }
+            <a href="/settings" class="@Here("/settings")">Settings</a>
+        </nav>
+        <main class="content">
+            @if (ViewData["Title"] is string title)
+            {
+                <h1>@title</h1>
+            }
+            @if (TempData.Peek("Notice") is string notice)
+            {
+                <p class="notice">@notice</p>
+            }
+            @RenderBody()
+        </main>
+    </div>
+}
+</body>
+</html>

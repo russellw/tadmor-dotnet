@@ -1,0 +1,35 @@
+@page "/exchange-rates"
+@model Tadmor.Pages.Accounting.RatesModel
+@{
+    ViewData["Title"] = "Exchange rates";
+}
+<p class="muted">How many @Model.Base one unit of the currency buys on a date. Posting uses the latest rate on or before the document date.</p>
+<partial name="_Error" model="Model.Error" />
+<form method="post" asp-page-handler="create" class="filters">
+    <label>Currency
+        <select name="currency_code" required>
+            @foreach (var c in Model.Currencies.Where(c => c.Value != Model.Base)) { <option value="@c.Value">@c.Label</option> }
+        </select>
+    </label>
+    <label>Date <input type="date" name="rate_date" value="@Format.Date(Format.Today)" required></label>
+    <label>Rate <input name="rate" inputmode="decimal" required></label>
+    <button type="submit">Add rate</button>
+</form>
+<table class="list">
+    <thead><tr><th>Currency</th><th>Date</th><th class="num">Rate</th><th>Change</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var r in Model.Rates)
+    {
+        var date = Format.Date(r.RateDate);
+        <tr><td>@r.CurrencyCode</td><td>@date</td><td class="num">@Format.Qty(r.Rate)</td>
+            <td><form method="post" asp-page-handler="update" asp-route-currency="@r.CurrencyCode" asp-route-date="@date" class="inline">
+                <input name="rate" value="@Format.Qty(r.Rate)" inputmode="decimal" aria-label="New rate"> <button type="submit" class="secondary">Save</button></form></td>
+            <td><form method="post" asp-page-handler="delete" asp-route-currency="@r.CurrencyCode" asp-route-date="@date" class="inline"
+                      data-confirm="Delete the @r.CurrencyCode rate of @date?"><button type="submit" class="danger">Delete</button></form></td></tr>
+    }
+    @if (Model.Rates.Count == 0)
+    {
+        <tr><td colspan="5" class="empty">No rates yet.</td></tr>
+    }
+    </tbody>
+</table>

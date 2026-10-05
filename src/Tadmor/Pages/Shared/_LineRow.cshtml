@@ -1,0 +1,21 @@
+@model (LineForm Form, Dictionary<string, string> Line)
+@{
+    var (f, l) = Model;
+}
+<tr class="line">
+    <td><select name="line_product_id" class="product"><option value=""></option>
+        @foreach (var p in f.Products) { <option value="@p.Id" selected="@(l["product_id"] == p.Id.ToString())">@p.Sku</option> }
+    </select></td>
+    <td><input name="line_description" class="desc" value="@l["description"]"></td>
+    <td><input name="line_quantity" class="qty num" value="@l["quantity"]" inputmode="decimal"></td>
+    <td><input name="line_@f.PriceField" class="price num" value="@l["price"]" inputmode="decimal"></td>
+    <td><select name="line_@f.AccountField" class="account"><option value=""></option>
+        @foreach (var a in f.Accounts) { <option value="@a.Value" selected="@(l["account"] == a.Value)">@a.Label</option> }
+    </select></td>
+    <td><select name="line_tax_code" class="taxcode"><option value=""></option>
+        @foreach (var t in f.TaxCodes) { <option value="@t.Code" selected="@(l["tax_code"] == t.Code)">@t.Code</option> }
+    </select></td>
+    <td><input name="line_tax_rate" class="rate num" value="@l["tax_rate"]" inputmode="decimal"></td>
+    <td class="num out out-subtotal"></td><td class="num out out-tax"></td><td class="num out out-total"></td>
+    <td><button type="button" class="link remove" title="Remove this line">Remove</button></td>
+</tr>

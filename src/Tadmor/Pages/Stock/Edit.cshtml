@@ -1,0 +1,35 @@
+@page "/stock-movements/{id:int}/edit"
+@model Tadmor.Pages.Stock.EditModel
+@{
+    ViewData["Title"] = Model.Id is null ? "New stock movement" : "Edit stock movement " + Model.Id;
+    string V(string n) => Model.Values.GetValueOrDefault(n, "");
+}
+<form method="post" class="form" id="movementform">
+    <partial name="_Error" model="Model.Error" />
+    <label>Product
+        <select name="product_id" required>
+            <option value=""></option>
+            @foreach (var p in Model.Products) { <option value="@p.Value" selected="@(V("product_id") == p.Value)">@p.Label</option> }
+        </select>
+    </label>
+    <label>Warehouse
+        <select name="warehouse_id" required>
+            <option value=""></option>
+            @foreach (var w in Model.Warehouses) { <option value="@w.Value" selected="@(V("warehouse_id") == w.Value)">@w.Label</option> }
+        </select>
+    </label>
+    <label>Type
+        <select name="movement_type" required>
+            @foreach (var t in new[] { "receipt", "issue", "adjustment", "transfer_in", "transfer_out" }) { <option value="@t" selected="@(V("movement_type") == t)">@t</option> }
+        </select>
+    </label>
+    <label>Date <input type="date" name="movement_date" value="@V("movement_date")"></label>
+    <label>Quantity <span class="muted" id="qty-hint"></span> <input name="quantity" value="@V("quantity")" inputmode="decimal" required></label>
+    <label>Unit cost (@Model.Base) <input name="unit_cost" value="@V("unit_cost")" inputmode="decimal"></label>
+    <label>Reference <input name="reference" value="@V("reference")"></label>
+    <label>Notes <input name="notes" value="@V("notes")"></label>
+    <p class="actions">
+        <button type="submit">@(Model.Id is null ? "Create" : "Save")</button>
+        <a href="/stock-movements@(Model.Id is null ? "" : "/" + Model.Id)">Cancel</a>
+    </p>
+</form>

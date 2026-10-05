@@ -1,0 +1,22 @@
+@page "/bank-statements"
+@model Tadmor.Pages.Bank.ListModel
+@{
+    ViewData["Title"] = "Bank statements";
+}
+<p class="actions"><a class="button" href="/bank-statements/new">New statement</a></p>
+<table class="list">
+    <thead><tr><th>Account</th><th>Date</th><th>Reference</th><th class="num">Closing balance</th><th class="num">Matched</th>
+        <th class="num">Difference</th><th>Status</th></tr></thead>
+    <tbody>
+    @foreach (var s in Model.Rows)
+    {
+        <tr><td><a href="/bank-statements/@s.Id">@s.AccountCode @s.AccountName</a></td><td>@Format.Date(s.StatementDate)</td><td>@s.Reference</td>
+            <td class="num">@Format.Amount(s.ClosingBalance)</td><td class="num">@s.MatchedCount of @s.LineCount</td>
+            <td class="num">@Format.Amount(s.Difference)</td><td><span class="status">@s.Status</span></td></tr>
+    }
+    @if (Model.Rows.Count == 0)
+    {
+        <tr><td colspan="7" class="empty">None yet.</td></tr>
+    }
+    </tbody>
+</table>

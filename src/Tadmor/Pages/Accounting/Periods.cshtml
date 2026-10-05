@@ -1,0 +1,52 @@
+@page "/periods"
+@model Tadmor.Pages.Accounting.PeriodsModel
+@{
+    ViewData["Title"] = "Fiscal periods";
+}
+<partial name="_Error" model="Model.Error" />
+<p class="actions">
+    <a class="button" href="/periods/years/new">New fiscal year</a>
+    <a class="button secondary" href="/periods/new">New period</a>
+</p>
+@foreach (var y in Model.Years)
+{
+    var periods = Model.Periods.Where(p => p.FiscalYearId == y.Id).ToList();
+    <h2><a href="/periods/years/@y.Id">@y.Name</a> <span class="muted">@Format.Date(y.StartDate) to @Format.Date(y.EndDate)</span>
+        <span class="status">@y.Status</span></h2>
+    @if (Model.Me.IsAdmin)
+    {
+        <div class="actions">
+            @if (y.Status == "open")
+            {
+                <a class="button secondary" href="/periods/years/@y.Id/close">Close year…</a>
+            }
+            @if (y.Id == Model.ReopenableYear)
+            {
+                <form method="post" asp-page-handler="reopen" asp-route-year="@y.Id" class="inline"
+                      data-confirm="Reopen @y.Name? Its closing entry is reversed and the period holding it reopened.">
+                    <button type="submit" class="secondary">Reopen year</button>
+                </form>
+            }
+        </div>
+    }
+    <table>
+        <thead><tr><th>Period</th><th>Start</th><th>End</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var p in periods)
+        {
+            <tr><td><a href="/periods/@p.Id">@p.Name</a></td><td>@Format.Date(p.StartDate)</td><td>@Format.Date(p.EndDate)</td>
+                <td><span class="status">@p.Status</span></td>
+                <td><form method="post" asp-page-handler="toggle" asp-route-period="@p.Id" class="inline">
+                    <button type="submit" class="link">@(p.Status == "open" ? "Close" : "Reopen")</button></form></td></tr>
+        }
+        @if (periods.Count == 0)
+        {
+            <tr><td colspan="5" class="empty">No periods yet; posting creates monthly periods on demand.</td></tr>
+        }
+        </tbody>
+    </table>
+}
+@if (Model.Years.Count == 0)
+{
+    <p class="empty">No fiscal years yet. Create one before posting anything.</p>
+}

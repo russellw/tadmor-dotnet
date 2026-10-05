@@ -1,0 +1,35 @@
+@page "/{resource:regex(^(organizations|customers|suppliers|products|accounts|tax-codes|payment-terms|warehouses|users)$)}"
+@model Tadmor.Pages.Master.ListModel
+@{
+    var r = Model.Resource;
+    ViewData["Title"] = r.Title;
+}
+<p class="actions"><a class="button" href="/@r.Path/new">New @r.Singular</a></p>
+<table class="list">
+    <thead><tr>@foreach (var c in r.Columns) { <th class="@(c.Cell is Cell.Amount or Cell.Qty ? "num" : "")">@c.Label</th> }</tr></thead>
+    <tbody>
+    @foreach (var row in Model.Rows)
+    {
+        var key = Format.Raw(row[r.KeyField]);
+        <tr>
+        @for (var i = 0; i < r.Columns.Count; i++)
+        {
+            var c = r.Columns[i];
+            var text = Model.Cell(c, row.GetValueOrDefault(c.Name));
+            if (i == 0)
+            {
+                <td><a href="/@r.Path/@Uri.EscapeDataString(key)">@(text == "" ? key : text)</a></td>
+            }
+            else
+            {
+                <td class="@(c.Cell is Cell.Amount or Cell.Qty ? "num" : "")">@text</td>
+            }
+        }
+        </tr>
+    }
+    @if (Model.Rows.Count == 0)
+    {
+        <tr><td colspan="@r.Columns.Count" class="empty">None yet.</td></tr>
+    }
+    </tbody>
+</table>

@@ -1,0 +1,14 @@
+@model (string Collection, List<Settlement.ApplicationDto> Rows, string? Currency)
+<table>
+    <thead><tr><th>Document</th><th class="num">Applied</th></tr></thead>
+    <tbody>
+    @foreach (var a in Model.Rows)
+    {
+        <tr><td><a href="/@Model.Collection/@a.DocumentId">@a.DocumentNumber</a></td><td class="num">@Format.Money(a.AmountApplied, Model.Currency)</td></tr>
+    }
+    @if (Model.Rows.Count == 0)
+    {
+        <tr><td colspan="2" class="empty">Not applied to anything yet.</td></tr>
+    }
+    </tbody>
+</table>

@@ -1,0 +1,22 @@
+@page "/periods/years/{id:int}/close"
+@model Tadmor.Pages.Accounting.CloseYearModel
+@{
+    var y = Model.Year;
+    ViewData["Title"] = "Close " + y.Name;
+}
+<partial name="_Error" model="Model.Error" />
+<p>Closing @y.Name (@Format.Date(y.StartDate) to @Format.Date(y.EndDate)) will:</p>
+<ol>
+    <li>post a closing entry dated @Format.Date(y.EndDate) that moves every revenue and expense balance into the retained earnings account below;</li>
+    <li>close every period of the year, and then the year, so nothing more can be posted into it;</li>
+    <li>create the next fiscal year, starting @Format.Date(y.EndDate.AddDays(1)), unless one already covers that day.</li>
+</ol>
+<p>Every earlier year must already be closed. The year can be reopened later, which reverses the closing entry.</p>
+<form method="post" class="form" data-confirm="Close @y.Name now?">
+    <label>Retained earnings account
+        <select name="retained_earnings_account_id" required>
+            @foreach (var a in Model.EquityAccounts) { <option value="@a.Value" selected="@(a.Value == Model.Proposed)">@a.Label</option> }
+        </select>
+    </label>
+    <p class="actions"><button type="submit">Close the year</button> <a href="/periods">Cancel</a></p>
+</form>

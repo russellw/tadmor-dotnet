@@ -1,0 +1,29 @@
+@page "/{kind:regex(^(sales-invoices|purchase-bills|sales-credit-notes|purchase-credit-notes)$)}"
+@model Tadmor.Pages.Docs.ListModel
+@{
+    var k = Model.Kind;
+    ViewData["Title"] = Names.Plural(k.Collection);
+}
+<p class="actions"><a class="button" href="/@k.Collection/new">New @Names.Singular(k.Collection)</a></p>
+<table class="list">
+    <thead><tr><th>Number</th><th>@Names.Party(k.Sales)</th><th>Date</th>@if (k.HasDueDate) { <th>Due</th> }
+        <th class="num">Total</th><th class="num">@(k.IsCreditNote ? "Unapplied" : "Balance")</th><th>Status</th></tr></thead>
+    <tbody>
+    @foreach (var d in Model.Rows)
+    {
+        <tr>
+            <td><a href="/@k.Collection/@d["id"]">@d[k.NumberField]</a></td>
+            <td>@Model.PartyName(d[k.PartyField])</td>
+            <td>@Format.Raw(d[k.DateField])</td>
+            @if (k.HasDueDate) { <td>@Format.Raw(d["due_date"])</td> }
+            <td class="num">@Format.Money((decimal?)d["total"], (string?)d["currency_code"])</td>
+            <td class="num">@Format.Money((decimal?)d["balance"], (string?)d["currency_code"])</td>
+            <td><span class="status">@d["status"]</span> @(d["status"] as string == "posted" ? d[k.SettlementField] : "")</td>
+        </tr>
+    }
+    @if (Model.Rows.Count == 0)
+    {
+        <tr><td colspan="7" class="empty">None yet.</td></tr>
+    }
+    </tbody>
+</table>

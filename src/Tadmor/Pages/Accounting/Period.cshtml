@@ -1,0 +1,27 @@
+@page "/periods/{key:regex(^(new|\d+)$)}"
+@model Tadmor.Pages.Accounting.PeriodModel
+@{
+    ViewData["Title"] = Model.Key == "new" ? "New period" : "Period " + Model.V("name");
+}
+<form method="post" class="form">
+    <partial name="_Error" model="Model.Error" />
+    <label>Fiscal year
+        <select name="fiscal_year_id" required>
+            <option value=""></option>
+            @foreach (var y in Model.Years) { <option value="@y.Id" selected="@(Model.V("fiscal_year_id") == y.Id.ToString())">@y.Name</option> }
+        </select>
+    </label>
+    <label>Name <input name="name" value="@Model.V("name")" required></label>
+    <label>Start date <input type="date" name="start_date" value="@Model.V("start_date")" required></label>
+    <label>End date <input type="date" name="end_date" value="@Model.V("end_date")" required></label>
+    @if (Model.Key != "new")
+    {
+        <label>Status
+            <select name="status">
+                <option value="open" selected="@(Model.V("status") == "open")">open</option>
+                <option value="closed" selected="@(Model.V("status") == "closed")">closed</option>
+            </select>
+        </label>
+    }
+    <p class="actions"><button type="submit">@(Model.Key == "new" ? "Create" : "Save")</button> <a href="/periods">Cancel</a></p>
+</form>

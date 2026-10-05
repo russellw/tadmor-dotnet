@@ -1,0 +1,78 @@
+@page "/{kind:regex(^(sales-invoices|purchase-bills|sales-credit-notes|purchase-credit-notes)$)}/{id:int}"
+@model Tadmor.Pages.Docs.DetailModel
+@{
+    var k = Model.Kind;
+    var d = Model.Doc;
+    var cur = (string?)d["currency_code"];
+    var status = (string)d["status"]!;
+    ViewData["Title"] = $"{(k.IsCreditNote ? Names.Title(k.Collection) : k.Label)} {d[k.NumberField]}";
+    decimal? M(string name) => (decimal?)d[name];
+}
+<partial name="_Error" model="Model.Error" />
+<dl class="facts">
+    <dt>@Names.Party(k.Sales)</dt><dd>@Model.PartyName</dd>
+    <dt>Date</dt><dd>@Format.Raw(d[k.DateField])</dd>
+    @if (k.HasDueDate) { <dt>Due date</dt><dd>@Format.Raw(d["due_date"])</dd> }
+    <dt>Currency</dt><dd>@cur</dd>
+    <dt>Status</dt><dd><span class="status">@status</span> @(status == "posted" ? d[k.SettlementField] : "")</dd>
+    <dt>Reference</dt><dd>@d["reference"]</dd>
+    <dt>Memo</dt><dd>@d["memo"]</dd>
+    @if (d["journal_entry_id"] is int je)
+    {
+        <dt>Journal entry</dt><dd><a href="/journal-entries/@je">Entry @je</a></dd>
+    }
+</dl>
+<table>
+    <thead><tr><th>#</th><th>Description</th><th class="num">Qty</th><th class="num">@(k.Sales ? "Unit price" : "Unit cost")</th>
+        <th>Account</th><th class="num">Tax %</th><th class="num">Tax</th><th class="num">Line total</th></tr></thead>
+    <tbody>
+    @foreach (var l in Model.Lines)
+    {
+        <tr><td>@l["line_no"]</td><td>@l["description"]</td><td class="num">@Format.Qty((decimal?)l["quantity"])</td>
+            <td class="num">@Format.Amount((decimal?)l[k.PriceField])</td><td>@Model.AccountLabel(l[k.AccountField])</td>
+            <td class="num">@Format.Qty((decimal?)l["tax_rate"])</td><td class="num">@Format.Amount((decimal?)l["tax_amount"])</td>
+            <td class="num">@Format.Amount((decimal?)l["line_total"])</td></tr>
+    }
+    </tbody>
+    <tfoot>
+        <tr><td colspan="7">Subtotal</td><td class="num">@Format.Money(M("subtotal"), cur)</td></tr>
+        <tr><td colspan="7">Tax</td><td class="num">@Format.Money(M("tax_total"), cur)</td></tr>
+        <tr class="total"><td colspan="7">Total</td><td class="num">@Format.Money(M("total"), cur)</td></tr>
+        <tr><td colspan="7">Applied</td><td class="num">@Format.Money(M("amount_applied"), cur)</td></tr>
+        <tr class="total"><td colspan="7">@(k.IsCreditNote ? "Unapplied" : "Balance")</td><td class="num">@Format.Money(M("balance"), cur)</td></tr>
+    </tfoot>
+</table>
+
+<div class="actions">
+    @if (status == "draft")
+    {
+        <form method="post" asp-page-handler="post" class="inline"><button type="submit">Post</button></form>
+        @if (!Model.FromOrder)
+        {
+            <a class="button secondary" href="/@k.Collection/@Model.Id/edit">Edit</a>
+        }
+        <form method="post" asp-page-handler="delete" class="inline" data-confirm="Delete this draft? This cannot be undone.">
+            <button type="submit" class="danger">Delete</button>
+        </form>
+    }
+    @if (status == "posted" && k.IsCreditNote && M("balance") > 0)
+    {
+        <form method="post" asp-page-handler="apply" class="inline"><button type="submit">Apply to open @(k.Sales ? "invoices" : "bills")</button></form>
+    }
+    @if (status == "posted" && Model.Me.IsAdmin)
+    {
+        <form method="post" asp-page-handler="unpost" class="inline" data-confirm="Unpost this document? A reversing entry is posted.">
+            <button type="submit" class="secondary">Unpost</button>
+        </form>
+    }
+    <a class="button secondary" href="/api/@k.Collection/@Model.Id/pdf" target="_blank" rel="noopener">PDF</a>
+</div>
+
+<partial name="_Email" model="Model.Email" />
+
+@if (k.IsCreditNote)
+{
+    <h2>Applied to</h2>
+    var appliedTo = (k.Sales ? "sales-invoices" : "purchase-bills", Model.Applications, cur);
+    <partial name="_Applications" model="appliedTo" />
+}

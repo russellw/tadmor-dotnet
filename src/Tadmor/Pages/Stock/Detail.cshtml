@@ -1,0 +1,56 @@
+@page "/stock-movements/{id:int}"
+@model Tadmor.Pages.Stock.DetailModel
+@{
+    var m = Model.Movement;
+    ViewData["Title"] = $"Stock {m.MovementType} {m.Id}";
+}
+<partial name="_Error" model="Model.Error" />
+<dl class="facts">
+    <dt>Product</dt><dd>@Model.Product</dd>
+    <dt>Warehouse</dt><dd>@Model.Warehouse</dd>
+    <dt>Date</dt><dd>@Format.Date(m.MovementDate)</dd>
+    <dt>Type</dt><dd>@m.MovementType</dd>
+    <dt>Quantity</dt><dd>@Format.Qty(m.Quantity)</dd>
+    <dt>Unit cost</dt><dd>@Format.Money(m.UnitCost, Model.Base)</dd>
+    <dt>Total cost</dt><dd>@Format.Money(m.TotalCost, Model.Base)</dd>
+    <dt>Reference</dt><dd>@m.Reference</dd>
+    <dt>Notes</dt><dd>@m.Notes</dd>
+    <dt>Source</dt><dd>@(m.SourceType is null ? "Entered by hand" : m.SourceType.Replace('_', ' '))</dd>
+    <dt>Status</dt><dd><span class="status">@m.Status</span></dd>
+    @if (m.JournalEntryId is int je)
+    {
+        <dt>Journal entry</dt><dd><a href="/journal-entries/@je">Entry @je</a></dd>
+    }
+</dl>
+<div class="actions">
+    @if (m.JournalEntryId is null)
+    {
+        @if (m.MovementType is "receipt" or "issue")
+        {
+            <form method="post" asp-page-handler="post" class="inline filters">
+                @if (m.MovementType == "receipt")
+                {
+                    <label>Account to credit
+                        <select name="credit_account_id" required>
+                            @foreach (var a in Model.CreditAccounts) { <option value="@a.Value" selected="@(a.Value == Model.Grni)">@a.Label</option> }
+                        </select>
+                    </label>
+                }
+                <button type="submit">Post</button>
+            </form>
+        }
+        @if (m.SourceType is null)
+        {
+            <a class="button secondary" href="/stock-movements/@m.Id/edit">Edit</a>
+        }
+        <form method="post" asp-page-handler="delete" class="inline" data-confirm="Delete this stock movement?">
+            <button type="submit" class="danger">Delete</button>
+        </form>
+    }
+    else if (Model.Me.IsAdmin)
+    {
+        <form method="post" asp-page-handler="unpost" class="inline" data-confirm="Unpost this movement? A reversing entry is posted.">
+            <button type="submit" class="secondary">Unpost</button>
+        </form>
+    }
+</div>

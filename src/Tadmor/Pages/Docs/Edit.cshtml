@@ -1,0 +1,38 @@
+@page "/{kind:regex(^(sales-invoices|purchase-bills|sales-credit-notes|purchase-credit-notes)$)}/{id:int}/edit"
+@model Tadmor.Pages.Docs.EditModel
+@{
+    var k = Model.Kind;
+    var f = Model.Doc;
+    ViewData["Title"] = Model.Id is null ? "New " + Names.Singular(k.Collection) : "Edit " + Names.Singular(k.Collection) + " " + f.H(k.NumberField);
+}
+<form method="post" class="form" id="docform">
+    <partial name="_Error" model="Model.Error" />
+    <div class="row">
+        <label>@Names.Party(k.Sales)
+            <select name="@k.PartyField" required>
+                <option value=""></option>
+                @foreach (var p in f.Parties) { <option value="@p.Id" selected="@(f.H(k.PartyField) == p.Id.ToString())">@p.Name</option> }
+            </select>
+        </label>
+        <label>Number <input name="@k.NumberField" value="@f.H(k.NumberField)" required></label>
+        <label>Date <input type="date" name="@k.DateField" value="@f.H(k.DateField)" required></label>
+        @if (k.HasDueDate)
+        {
+            <label>Due date <input type="date" name="due_date" value="@f.H("due_date")"></label>
+        }
+        <label>Currency
+            <select name="currency_code" required>
+                @foreach (var c in f.Currencies) { <option value="@c.Value" selected="@(f.H("currency_code") == c.Value)">@c.Label</option> }
+            </select>
+        </label>
+    </div>
+    <div class="row">
+        <label>Reference <input name="reference" value="@f.H("reference")"></label>
+        <label>Memo <input name="memo" value="@f.H("memo")"></label>
+    </div>
+    <partial name="_LineEditor" model="f" />
+    <p class="actions">
+        <button type="submit">@(Model.Id is null ? "Create draft" : "Save")</button>
+        <a href="/@k.Collection@(Model.Id is null ? "" : "/" + Model.Id)">Cancel</a>
+    </p>
+</form>

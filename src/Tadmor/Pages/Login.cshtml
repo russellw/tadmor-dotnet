@@ -1,0 +1,13 @@
+@page "/login"
+@model Tadmor.Pages.LoginModel
+@{
+    ViewData["Title"] = null;
+}
+<form method="post" class="login">
+    <h1>tadmor</h1>
+    <partial name="_Error" model="Model.Error" />
+    <label>Email <input name="email" type="email" autocomplete="username" value="@Model.Email" required autofocus></label>
+    <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+    <input type="hidden" name="next" value="@Model.Next">
+    <button type="submit">Sign in</button>
+</form>

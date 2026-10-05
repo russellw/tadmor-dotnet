@@ -1,0 +1,53 @@
+@page "/{resource:regex(^(organizations|customers|suppliers|products|accounts|tax-codes|payment-terms|warehouses|users)$)}/{key}"
+@model Tadmor.Pages.Master.EditModel
+@{
+    var r = Model.Resource;
+    ViewData["Title"] = Model.IsNew ? "New " + r.Singular : r.Title + ": " + Model.Heading;
+}
+<form method="post" class="form">
+    <partial name="_Error" model="Model.Error" />
+    @foreach (var f in Model.Fields)
+    {
+        var value = Model.Value(f.Name);
+        var locked = f.Locked && !Model.IsNew;
+        <label class="@(f.Type == FieldType.Flag ? "check" : "")">
+            @if (f.Type == FieldType.Flag)
+            {
+                <input type="checkbox" name="@f.Name" value="true" checked="@(value == "true")"> @f.Label
+            }
+            else
+            {
+                @f.Label
+                if (locked)
+                {
+                    <input type="hidden" name="@f.Name" value="@value">
+                    <span class="locked">@(Model.Choices.TryGetValue(f.Name, out var cs) ? cs.FirstOrDefault(o => o.Value == value)?.Label ?? value : value)</span>
+                }
+                else if (f.Type == FieldType.Select)
+                {
+                    <select name="@f.Name" required="@f.Required">
+                        <option value=""></option>
+                        @foreach (var o in Model.Choices[f.Name])
+                        {
+                            <option value="@o.Value" selected="@(o.Value == value)">@o.Label</option>
+                        }
+                    </select>
+                }
+                else
+                {
+                    var type = f.Type switch { FieldType.Email => "email", FieldType.Password => "password", FieldType.Int => "number", _ => "text" };
+                    <input type="@type" name="@f.Name" value="@(f.Type == FieldType.Password ? "" : value)" required="@f.Required"
+                           inputmode="@(f.Type == FieldType.Decimal ? "decimal" : null)">
+                }
+            }
+        </label>
+    }
+    <p class="actions">
+        <button type="submit">@(Model.IsNew ? "Create" : "Save")</button>
+        <a href="/@r.Path">Cancel</a>
+        @if (r.Path == "users" && !Model.IsNew)
+        {
+            <a href="/users/@Model.Key/password">Reset password</a>
+        }
+    </p>
+</form>

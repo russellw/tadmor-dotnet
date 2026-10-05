@@ -1,0 +1,35 @@
+@page "/{kind:regex(^(sales-orders|purchase-orders)$)}/{id:int}/edit"
+@model Tadmor.Pages.Orders.EditModel
+@{
+    var k = Model.Kind;
+    var f = Model.Doc;
+    ViewData["Title"] = Model.Id is null ? "New " + Names.Singular(k.Collection) : "Edit " + Names.Singular(k.Collection) + " " + f.H("order_number");
+}
+<form method="post" class="form" id="docform">
+    <partial name="_Error" model="Model.Error" />
+    <div class="row">
+        <label>@Names.Party(k.Sales)
+            <select name="@k.PartyField" required>
+                <option value=""></option>
+                @foreach (var p in f.Parties) { <option value="@p.Id" selected="@(f.H(k.PartyField) == p.Id.ToString())">@p.Name</option> }
+            </select>
+        </label>
+        <label>Order number <input name="order_number" value="@f.H("order_number")" required></label>
+        <label>Order date <input type="date" name="order_date" value="@f.H("order_date")" required></label>
+        <label>@(k.Sales ? "Expected ship date" : "Expected receipt date") <input type="date" name="@k.ExpectedField" value="@f.H(k.ExpectedField)"></label>
+        <label>Currency
+            <select name="currency_code" required>
+                @foreach (var c in f.Currencies) { <option value="@c.Value" selected="@(f.H("currency_code") == c.Value)">@c.Label</option> }
+            </select>
+        </label>
+    </div>
+    <div class="row">
+        <label>Reference <input name="reference" value="@f.H("reference")"></label>
+        <label>Memo <input name="memo" value="@f.H("memo")"></label>
+    </div>
+    <partial name="_LineEditor" model="f" />
+    <p class="actions">
+        <button type="submit">@(Model.Id is null ? "Create draft" : "Save")</button>
+        <a href="/@k.Collection@(Model.Id is null ? "" : "/" + Model.Id)">Cancel</a>
+    </p>
+</form>

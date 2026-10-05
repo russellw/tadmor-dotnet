@@ -1,0 +1,56 @@
+@page "/{kind:regex(^(sales-orders|purchase-orders)$)}/{id:int}/{step:regex(^(invoice|bill|ship|receive)$)}"
+@model Tadmor.Pages.Orders.FulfilModel
+@{
+    var k = Model.Kind;
+    ViewData["Title"] = $"{Model.Verb} {k.Label.ToLowerInvariant()} {Model.Order["order_number"]}";
+    string V(string n, string fallback = "") => Request.HasFormContentType ? Request.Form[n].ToString() : fallback;
+}
+<partial name="_Error" model="Model.Error" />
+@if (Model.Movements.Count > 0)
+{
+    <p class="notice">Created @Model.Movements.Count draft stock movement(s):
+        @foreach (var m in Model.Movements) { <a href="/stock-movements/@m">movement @m</a> }
+    </p>
+    <p><a href="/@k.Collection/@Model.Id">Back to the order</a></p>
+}
+else
+{
+<form method="post" class="form">
+    <div class="row">
+        @if (Model.Charge)
+        {
+            <label>@(k.Sales ? "Invoice number" : "Bill number") <input name="@k.ChargeNumber" value="@V(k.ChargeNumber)" required></label>
+            <label>Date <input type="date" name="@k.ChargeDate" value="@V(k.ChargeDate, Format.Date(Format.Today))" required></label>
+            <label>Due date <input type="date" name="due_date" value="@V("due_date")"></label>
+        }
+        else
+        {
+            <label>Warehouse
+                <select name="warehouse_id" required>
+                    <option value=""></option>
+                    @foreach (var w in Model.Warehouses) { <option value="@w.Value" selected="@(V("warehouse_id") == w.Value)">@w.Label</option> }
+                </select>
+            </label>
+            <label>Date <input type="date" name="movement_date" value="@V("movement_date", Format.Date(Format.Today))"></label>
+            <label>Reference <input name="reference" value="@V("reference")"></label>
+        }
+    </div>
+    <table>
+        <thead><tr><th>#</th><th>Description</th><th class="num">Remaining</th><th class="num">Quantity</th></tr></thead>
+        <tbody>
+        @foreach (var l in Model.Outstanding)
+        {
+            var remaining = Format.Qty((decimal?)l[Model.Charge ? k.ToCharge : k.ToMove]);
+            <tr><td>@l["line_no"]<input type="hidden" name="line_order_line_id" value="@l["order_line_id"]"></td>
+                <td>@l["description"]</td><td class="num">@remaining</td>
+                <td class="num"><input name="line_quantity" value="@remaining" inputmode="decimal" class="num"></td></tr>
+        }
+        @if (Model.Outstanding.Count == 0)
+        {
+            <tr><td colspan="4" class="empty">Nothing remains to @Model.Verb.ToLowerInvariant().</td></tr>
+        }
+        </tbody>
+    </table>
+    <p class="actions"><button type="submit">@Model.Verb</button> <a href="/@k.Collection/@Model.Id">Cancel</a></p>
+</form>
+}

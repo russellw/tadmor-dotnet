@@ -55,7 +55,7 @@ public sealed record OrderKind
 /// movements that draw on their lines, and are closed by hand. Fulfilment
 /// quantities and statuses are derived by the schema's views.
 /// </summary>
-public sealed class Orders<TOrder, TLine, TLineFul, TFul, TDoc, TDocLine>(TadmorDb db, OrderKind kind)
+public sealed class Orders<TOrder, TLine, TLineFul, TFul, TDoc, TDocLine>(TadmorDb db, OrderKind kind) : IOrders
     where TOrder : Order, new()
     where TLine : DocumentLine, new()
     where TLineFul : OrderLineFulfilment

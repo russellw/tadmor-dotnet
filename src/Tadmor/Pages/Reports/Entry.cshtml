@@ -1,0 +1,33 @@
+@page "/journal-entries/{id:int}"
+@model Tadmor.Pages.Reports.EntryModel
+@{
+    var e = Model.Entry;
+    ViewData["Title"] = "Journal entry " + e.Id;
+}
+<dl class="facts">
+    <dt>Date</dt><dd>@Format.Date(e.EntryDate)</dd>
+    <dt>Currency</dt><dd>@e.CurrencyCode</dd>
+    <dt>Exchange rate</dt><dd>@Format.Qty(e.ExchangeRate)</dd>
+    <dt>Reference</dt><dd>@e.Reference</dd>
+    <dt>Memo</dt><dd>@e.Memo</dd>
+    <dt>Status</dt><dd><span class="status">@e.Status</span>@(e.IsClosing ? " (year-end closing)" : "")</dd>
+    @if (e.ReversesEntryId is int r)
+    {
+        <dt>Reverses</dt><dd><a href="/journal-entries/@r">Entry @r</a></dd>
+    }
+</dl>
+<table>
+    <thead><tr><th>#</th><th>Account</th><th>Memo</th><th class="num">Debit</th><th class="num">Credit</th>
+        <th class="num">Debit (@Model.Base)</th><th class="num">Credit (@Model.Base)</th></tr></thead>
+    <tbody>
+    @foreach (var l in e.Lines)
+    {
+        <tr><td>@l.LineNo</td><td><a href="/accounts/@l.AccountId/ledger">@l.AccountCode @l.AccountName</a></td><td>@l.Memo</td>
+            <td class="num">@Format.Amount(l.Debit)</td><td class="num">@Format.Amount(l.Credit)</td>
+            <td class="num">@Format.Amount(l.BaseDebit)</td><td class="num">@Format.Amount(l.BaseCredit)</td></tr>
+    }
+    <tr class="total"><td colspan="3">Total</td>
+        <td class="num">@Format.Money(e.Lines.Sum(l => l.Debit), e.CurrencyCode)</td><td class="num">@Format.Money(e.Lines.Sum(l => l.Credit), e.CurrencyCode)</td>
+        <td class="num">@Format.Amount(e.Lines.Sum(l => l.BaseDebit))</td><td class="num">@Format.Amount(e.Lines.Sum(l => l.BaseCredit))</td></tr>
+    </tbody>
+</table>

@@ -1,0 +1,20 @@
+@page "/bank-statements/{id:int}/edit"
+@model Tadmor.Pages.Bank.EditModel
+@{
+    ViewData["Title"] = Model.IsNew ? "New bank statement" : "Edit bank statement";
+}
+<form method="post" class="form">
+    <partial name="_Error" model="Model.Error" />
+    <label>Cash account
+        <select name="account_id" required>
+            <option value=""></option>
+            @foreach (var a in Model.CashAccounts) { <option value="@a.Value" selected="@(Model.V("account_id") == a.Value)">@a.Label</option> }
+        </select>
+    </label>
+    <label>Statement date <input type="date" name="statement_date" value="@Model.V("statement_date")" required></label>
+    <label>Opening balance <input name="opening_balance" value="@Model.V("opening_balance")" inputmode="decimal" required></label>
+    <label>Closing balance <input name="closing_balance" value="@Model.V("closing_balance")" inputmode="decimal" required></label>
+    <label>Reference <input name="reference" value="@Model.V("reference")"></label>
+    <p class="actions"><button type="submit">@(Model.IsNew ? "Create" : "Save")</button>
+        <a href="/bank-statements@(Model.IsNew ? "" : "/" + Model.Key)">Cancel</a></p>
+</form>

@@ -1,0 +1,67 @@
+@page "/{kind:regex(^(sales-orders|purchase-orders)$)}/{id:int}"
+@model Tadmor.Pages.Orders.DetailModel
+@{
+    var k = Model.Kind;
+    var o = Model.Order;
+    var cur = (string?)o["currency_code"];
+    var status = (string)o["status"]!;
+    var unfulfilled = (string?)o[k.Charged] == "none" && (string?)o[k.Moved] == "none";
+    ViewData["Title"] = $"{k.Label} {o["order_number"]}";
+}
+<partial name="_Error" model="Model.Error" />
+<dl class="facts">
+    <dt>@Names.Party(k.Sales)</dt><dd>@Model.PartyName</dd>
+    <dt>Order date</dt><dd>@Format.Raw(o["order_date"])</dd>
+    <dt>@(k.Sales ? "Expected ship" : "Expected receipt")</dt><dd>@Format.Raw(o[k.ExpectedField])</dd>
+    <dt>Currency</dt><dd>@cur</dd>
+    <dt>Status</dt><dd><span class="status">@status</span></dd>
+    <dt>@(k.Sales ? "Invoiced" : "Billed")</dt><dd>@o[k.Charged]</dd>
+    <dt>@(k.Sales ? "Shipped" : "Received")</dt><dd>@o[k.Moved]</dd>
+    <dt>Reference</dt><dd>@o["reference"]</dd>
+    <dt>Memo</dt><dd>@o["memo"]</dd>
+</dl>
+<table>
+    <thead><tr><th>#</th><th>Description</th><th class="num">Ordered</th><th class="num">@(k.Sales ? "Unit price" : "Unit cost")</th>
+        <th class="num">Line total</th><th class="num">@(k.Sales ? "Invoiced" : "Billed")</th><th class="num">@(k.Sales ? "Shipped" : "Received")</th>
+        <th class="num">To @(k.Sales ? "invoice" : "bill")</th><th class="num">To @(k.Sales ? "ship" : "receive")</th></tr></thead>
+    <tbody>
+    @foreach (var l in Model.Lines)
+    {
+        <tr><td>@l["line_no"]</td><td>@l["description"]</td><td class="num">@Format.Qty((decimal?)l["quantity"])</td>
+            <td class="num">@Format.Amount((decimal?)l[k.PriceField])</td><td class="num">@Format.Amount((decimal?)l["line_total"])</td>
+            <td class="num">@Format.Qty((decimal?)l[k.ChargedQty])</td><td class="num">@Format.Qty((decimal?)l[k.MovedQty])</td>
+            <td class="num">@Format.Qty((decimal?)l[k.ToCharge])</td><td class="num">@Format.Qty((decimal?)l[k.ToMove])</td></tr>
+    }
+    </tbody>
+    <tfoot>
+        <tr><td colspan="4">Subtotal</td><td class="num">@Format.Money((decimal?)o["subtotal"], cur)</td><td colspan="4"></td></tr>
+        <tr><td colspan="4">Tax</td><td class="num">@Format.Money((decimal?)o["tax_total"], cur)</td><td colspan="4"></td></tr>
+        <tr class="total"><td colspan="4">Total</td><td class="num">@Format.Money((decimal?)o["total"], cur)</td><td colspan="4"></td></tr>
+    </tfoot>
+</table>
+<div class="actions">
+    @if (status == "draft")
+    {
+        <form method="post" asp-page-handler="confirm" class="inline"><button type="submit">Confirm</button></form>
+        <a class="button secondary" href="/@k.Collection/@Model.Id/edit">Edit</a>
+        <form method="post" asp-page-handler="delete" class="inline" data-confirm="Delete this draft order?">
+            <button type="submit" class="danger">Delete</button>
+        </form>
+    }
+    @if (status == "open")
+    {
+        <a class="button" href="/@k.Collection/@Model.Id/@(k.Sales ? "invoice" : "bill")">@(k.Sales ? "Invoice" : "Bill")</a>
+        <a class="button" href="/@k.Collection/@Model.Id/@(k.Sales ? "ship" : "receive")">@(k.Sales ? "Ship" : "Receive")</a>
+        <form method="post" asp-page-handler="close" class="inline" data-confirm="Close this order? It will take no more fulfilment.">
+            <button type="submit" class="secondary">Close</button>
+        </form>
+    }
+    @if (status == "draft" || (status == "open" && unfulfilled))
+    {
+        <form method="post" asp-page-handler="cancel" class="inline" data-confirm="Cancel this order?">
+            <button type="submit" class="danger">Cancel order</button>
+        </form>
+    }
+    <a class="button secondary" href="/api/@k.Collection/@Model.Id/pdf" target="_blank" rel="noopener">PDF</a>
+</div>
+<partial name="_Email" model="Model.Email" />

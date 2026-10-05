@@ -1,0 +1,108 @@
+@page "/bank-statements/{id:int}"
+@model Tadmor.Pages.Bank.DetailModel
+@{
+    var s = Model.Statement;
+    var open = s.Status == "open";
+    ViewData["Title"] = $"Statement {s.AccountCode} {Format.Date(s.StatementDate)}";
+}
+<partial name="_Error" model="Model.Error" />
+<dl class="facts">
+    <dt>Account</dt><dd>@s.AccountCode @s.AccountName</dd>
+    <dt>Reference</dt><dd>@s.Reference</dd>
+    <dt>Opening balance</dt><dd>@Format.Amount(s.OpeningBalance)</dd>
+    <dt>Lines total</dt><dd>@Format.Amount(s.LinesTotal)</dd>
+    <dt>Closing balance</dt><dd>@Format.Amount(s.ClosingBalance)</dd>
+    <dt>Difference</dt><dd>@Format.Amount(s.Difference) <span class="muted">(opening + lines − closing; must be 0 to reconcile)</span></dd>
+    <dt>Matched</dt><dd>@s.MatchedCount of @s.LineCount lines</dd>
+    <dt>Status</dt><dd><span class="status">@s.Status</span></dd>
+</dl>
+<div class="actions">
+    @if (open)
+    {
+        <form method="post" asp-page-handler="automatch" class="inline"><button type="submit" class="secondary">Auto-match</button></form>
+        <form method="post" asp-page-handler="reconcile" class="inline"><button type="submit">Reconcile</button></form>
+        <a class="button secondary" href="/bank-statements/@s.Id/edit">Edit</a>
+        <form method="post" asp-page-handler="delete" class="inline" data-confirm="Delete this statement and all its lines?">
+            <button type="submit" class="danger">Delete</button>
+        </form>
+    }
+    else if (Model.Me.IsAdmin)
+    {
+        <form method="post" asp-page-handler="reopen" class="inline" data-confirm="Reopen this reconciled statement?">
+            <button type="submit" class="secondary">Reopen</button>
+        </form>
+    }
+</div>
+<h2>Lines</h2>
+<table>
+    <thead><tr><th>#</th><th>Date</th><th>Description</th><th>Reference</th><th class="num">Amount</th><th>Match</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var l in Model.Lines)
+    {
+        <tr>
+            <td>@l.LineNo</td><td>@Format.Date(l.TxnDate)</td><td>@l.Description</td><td>@l.Reference</td><td class="num">@Format.Amount(l.Amount)</td>
+            <td>
+            @if (l.JournalEntryId is int je)
+            {
+                <a href="/journal-entries/@je">Entry @je</a> <span class="muted">@Format.Date(l.EntryDate) @l.EntryMemo</span>
+                @if (open)
+                {
+                    <form method="post" asp-page-handler="unmatch" asp-route-line="@l.Id" class="inline"><button type="submit" class="link">Unmatch</button></form>
+                }
+            }
+            else if (open)
+            {
+                var options = Model.All ? Model.Candidates : Model.Candidates.Where(c => c.Amount == l.Amount).ToList();
+                if (options.Count == 0)
+                {
+                    <span class="muted">No candidates @(Model.All ? "" : "of this amount")</span>
+                }
+                else
+                {
+                    <form method="post" asp-page-handler="match" asp-route-line="@l.Id" class="inline">
+                        <select name="journal_line_id" aria-label="Journal line">
+                            @foreach (var c in options)
+                            {
+                                <option value="@c.JournalLineId">@Format.Date(c.EntryDate) · entry @c.JournalEntryId · @Format.Amount(c.Amount) · @(c.Reference ?? c.Memo)</option>
+                            }
+                        </select>
+                        <button type="submit" class="secondary">Match</button>
+                    </form>
+                }
+            }
+            </td>
+            <td>
+            @if (open)
+            {
+                <form method="post" asp-page-handler="deleteline" asp-route-line="@l.Id" class="inline" data-confirm="Delete line @l.LineNo?">
+                    <button type="submit" class="link">Delete</button>
+                </form>
+            }
+            </td>
+        </tr>
+    }
+    @if (Model.Lines.Count == 0)
+    {
+        <tr><td colspan="7" class="empty">No lines yet.</td></tr>
+    }
+    </tbody>
+</table>
+@if (open)
+{
+    <p>@if (Model.All) { <a href="/bank-statements/@s.Id">Show only candidates of each line's amount</a> } else { <a href="/bank-statements/@s.Id?all=1">Show all candidates</a> }</p>
+    <h2>Add a line</h2>
+    <form method="post" asp-page-handler="addline" class="filters">
+        <label>Date <input type="date" name="txn_date" required></label>
+        <label>Description <input name="description" required></label>
+        <label>Reference <input name="reference"></label>
+        <label>Amount (deposits positive) <input name="amount" inputmode="decimal" required></label>
+        <button type="submit">Add</button>
+    </form>
+    <h2>Import CSV</h2>
+    <form method="post" asp-page-handler="import" class="form">
+        <label>Paste rows of date,description,amount[,reference]; a header row is skipped.
+            <textarea name="csv" rows="6"></textarea>
+        </label>
+        <button type="submit">Import</button>
+    </form>
+}

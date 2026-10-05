@@ -80,7 +80,7 @@ public sealed record DocKind
 /// unposted by an administrator (spec/api.md §5.9, spec/domain.md §4).
 /// The database computes line amounts and keeps draft totals current.
 /// </summary>
-public sealed class Documents<TDoc, TLine, TBalance>(TadmorDb db, Journal journal, DocKind kind)
+public sealed class Documents<TDoc, TLine, TBalance>(TadmorDb db, Journal journal, DocKind kind) : IDocuments
     where TDoc : LineDocument
     where TLine : DocumentLine, new()
     where TBalance : DocumentBalance

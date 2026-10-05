@@ -1,0 +1,33 @@
+@page "/accounts/{id:int}/ledger"
+@model Tadmor.Pages.Reports.LedgerModel
+@{
+    ViewData["Title"] = "Ledger: " + Model.AccountLabel;
+    var foreign = Model.Rows.Any(r => r.CurrencyCode != Model.Base);
+    string Q(string n) => Request.Query[n].ToString();
+    var running = 0m;
+}
+<form method="get" class="filters">
+    <label>From <input type="date" name="from" value="@Q("from")"></label>
+    <label>To <input type="date" name="to" value="@Q("to")"></label>
+    <button type="submit" class="secondary">Show</button>
+    <span class="muted">A blank date is unbounded. The running balance is debit-positive, in @Model.Base, from the first line shown.</span>
+</form>
+<partial name="_Error" model="Model.Error" />
+<table>
+    <thead><tr><th>Date</th><th>Entry</th><th>Reference</th><th>Memo</th>
+        @if (foreign) { <th>Currency</th><th class="num">Debit</th><th class="num">Credit</th> }
+        <th class="num">Debit (@Model.Base)</th><th class="num">Credit (@Model.Base)</th><th class="num">Balance</th></tr></thead>
+    <tbody>
+    @foreach (var r in Model.Rows)
+    {
+        running += r.BaseDebit - r.BaseCredit;
+        <tr><td>@Format.Date(r.EntryDate)</td><td><a href="/journal-entries/@r.JournalEntryId">@r.JournalEntryId</a></td><td>@r.Reference</td><td>@r.Memo</td>
+            @if (foreign) { <td>@r.CurrencyCode</td><td class="num">@Format.Amount(r.Debit)</td><td class="num">@Format.Amount(r.Credit)</td> }
+            <td class="num">@Format.Amount(r.BaseDebit)</td><td class="num">@Format.Amount(r.BaseCredit)</td><td class="num">@Format.Amount(running)</td></tr>
+    }
+    @if (Model.Rows.Count == 0)
+    {
+        <tr><td colspan="10" class="empty">No posted lines in this range.</td></tr>
+    }
+    </tbody>
+</table>

@@ -1,0 +1,7 @@
+@page "/error"
+@model Tadmor.Pages.ErrorModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+<p class="error" role="alert">@Model.Message</p>
+<p><a href="/">Back to the home screen</a></p>

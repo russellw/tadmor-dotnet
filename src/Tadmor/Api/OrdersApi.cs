@@ -96,6 +96,10 @@ internal static class OrdersApi
     public static void AddServices(IServiceCollection services)
     {
         services.AddScoped<Stock>();
+        services.AddKeyedScoped<IOrders>(OrderKind.SalesOrder.Collection, (sp, _) => sp.GetRequiredService<Orders<SalesOrder,
+            SalesOrderLine, SalesOrderLineFulfilment, SalesOrderFulfilment, SalesInvoice, SalesInvoiceLine>>());
+        services.AddKeyedScoped<IOrders>(OrderKind.PurchaseOrder.Collection, (sp, _) => sp.GetRequiredService<Orders<PurchaseOrder,
+            PurchaseOrderLine, PurchaseOrderLineFulfilment, PurchaseOrderFulfilment, PurchaseBill, PurchaseBillLine>>());
         services.AddScoped(sp => new Orders<SalesOrder, SalesOrderLine, SalesOrderLineFulfilment, SalesOrderFulfilment, SalesInvoice,
             SalesInvoiceLine>(sp.GetRequiredService<TadmorDb>(), OrderKind.SalesOrder));
         services.AddScoped(sp => new Orders<PurchaseOrder, PurchaseOrderLine, PurchaseOrderLineFulfilment, PurchaseOrderFulfilment,

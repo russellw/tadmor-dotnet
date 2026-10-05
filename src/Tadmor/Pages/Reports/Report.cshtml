@@ -1,0 +1,143 @@
+@page "/reports/{name:regex(^(profit-and-loss|balance-sheet|cash-flow|trial-balance|ar-aging|ap-aging|inventory-valuation)$)}"
+@model Tadmor.Pages.Reports.ReportModel
+@{
+    ViewData["Title"] = Model.Title;
+    var b = Model.Base;
+    string Q(string n) => Request.Query[n].ToString();
+}
+@if (Model.Name is "profit-and-loss" or "cash-flow" or "balance-sheet")
+{
+    <form method="get" class="filters">
+        @if (Model.Name == "balance-sheet")
+        {
+            <label>As of <input type="date" name="as_of" value="@Q("as_of")"></label>
+        }
+        else
+        {
+            <label>From <input type="date" name="from" value="@Q("from")"></label>
+            <label>To <input type="date" name="to" value="@Q("to")"></label>
+        }
+        <button type="submit" class="secondary">Show</button>
+        <span class="muted">A blank date is unbounded. Amounts in @b.</span>
+    </form>
+}
+<partial name="_Error" model="Model.Error" />
+
+@if (Model.Pnl is { } pnl)
+{
+    <table>
+        <thead><tr><th>Account</th><th class="num">Amount</th></tr></thead>
+        <tbody>
+        @foreach (var (type, label) in new[] { ("revenue", "Revenue"), ("expense", "Expenses") })
+        {
+            <tr class="section"><td colspan="2">@label</td></tr>
+            foreach (var r in pnl.Where(r => r.AccountType == type))
+            {
+                <tr><td><a href="/accounts/@r.AccountId/ledger@(Request.QueryString)">@r.Code @r.Name</a></td><td class="num">@Format.Amount(r.Amount)</td></tr>
+            }
+            <tr class="total"><td>Total @label.ToLowerInvariant()</td><td class="num">@Format.Amount(pnl.Where(r => r.AccountType == type).Sum(r => r.Amount))</td></tr>
+        }
+            <tr class="total"><td>Net income</td><td class="num">@Format.Money(Model.NetIncome, b)</td></tr>
+        </tbody>
+    </table>
+}
+
+@if (Model.BalanceSheet is { } bs)
+{
+    <table>
+        <thead><tr><th>Account</th><th class="num">Amount</th></tr></thead>
+        <tbody>
+        @foreach (var (type, label) in new[] { ("asset", "Assets"), ("liability", "Liabilities"), ("equity", "Equity") })
+        {
+            <tr class="section"><td colspan="2">@label</td></tr>
+            foreach (var r in bs.Rows.Where(r => r.AccountType == type))
+            {
+                <tr><td><a href="/accounts/@r.AccountId/ledger">@r.Code @r.Name</a></td><td class="num">@Format.Amount(r.Amount)</td></tr>
+            }
+            <tr class="total"><td>Total @label.ToLowerInvariant()</td><td class="num">@Format.Amount(bs.Rows.Where(r => r.AccountType == type).Sum(r => r.Amount))</td></tr>
+        }
+        <tr><td>Current earnings</td><td class="num">@Format.Amount(bs.CurrentEarnings)</td></tr>
+        <tr class="total"><td>Liabilities + equity + current earnings</td>
+            <td class="num">@Format.Money(bs.Rows.Where(r => r.AccountType != "asset").Sum(r => r.Amount) + bs.CurrentEarnings, b)</td></tr>
+        </tbody>
+    </table>
+}
+
+@if (Model.CashFlow is { } cf)
+{
+    <table>
+        <thead><tr><th>Item</th><th class="num">Amount</th></tr></thead>
+        <tbody>
+        @foreach (var (activity, label) in new[] { ("operating", "Operating activities"), ("investing", "Investing activities"), ("financing", "Financing activities") })
+        {
+            var rows = cf.Rows.Where(r => r.Activity == activity).ToList();
+            var subtotal = rows.Sum(r => r.Amount) + (activity == "operating" ? cf.NetIncome : 0);
+            <tr class="section"><td colspan="2">@label</td></tr>
+            if (activity == "operating")
+            {
+                <tr><td>Net income</td><td class="num">@Format.Amount(cf.NetIncome)</td></tr>
+            }
+            foreach (var r in rows)
+            {
+                <tr><td><a href="/accounts/@r.AccountId/ledger@(Request.QueryString)">@r.Code @r.Name</a></td><td class="num">@Format.Amount(r.Amount)</td></tr>
+            }
+            <tr class="total"><td>Net cash from @activity activities</td><td class="num">@Format.Amount(subtotal)</td></tr>
+        }
+        <tr><td>Opening cash</td><td class="num">@Format.Amount(cf.OpeningCash)</td></tr>
+        <tr><td>Net cash flow</td><td class="num">@Format.Amount(cf.NetCashFlow)</td></tr>
+        <tr class="total"><td>Closing cash</td><td class="num">@Format.Money(cf.ClosingCash, b)</td></tr>
+        </tbody>
+    </table>
+}
+
+@if (Model.TrialBalance is { } tb)
+{
+    <table>
+        <thead><tr><th>Account</th><th>Type</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Balance</th></tr></thead>
+        <tbody>
+        @foreach (var r in tb)
+        {
+            <tr><td><a href="/accounts/@r.AccountId/ledger">@r.Code @r.Name</a></td><td>@r.AccountType</td>
+                <td class="num">@Format.Amount(r.TotalDebit)</td><td class="num">@Format.Amount(r.TotalCredit)</td><td class="num">@Format.Amount(r.Balance)</td></tr>
+        }
+        <tr class="total"><td colspan="2">Total (@b)</td><td class="num">@Format.Amount(tb.Sum(r => r.TotalDebit))</td>
+            <td class="num">@Format.Amount(tb.Sum(r => r.TotalCredit))</td><td class="num">@Format.Amount(tb.Sum(r => r.Balance))</td></tr>
+        </tbody>
+    </table>
+}
+
+@if (Model.Aging is { } aging)
+{
+    var collection = Model.Name == "ar-aging" ? "customers" : "suppliers";
+    <table>
+        <thead><tr><th>@(Model.Name == "ar-aging" ? "Customer" : "Supplier")</th><th class="num">Not yet due</th><th class="num">1–30</th>
+            <th class="num">31–60</th><th class="num">61–90</th><th class="num">Over 90</th><th class="num">Total</th></tr></thead>
+        <tbody>
+        @foreach (var r in aging)
+        {
+            <tr><td><a href="/@collection/@r.PartyId">@r.PartyName</a></td><td class="num">@Format.Amount(r.NotYetDue)</td>
+                <td class="num">@Format.Amount(r.Days130)</td><td class="num">@Format.Amount(r.Days3160)</td><td class="num">@Format.Amount(r.Days6190)</td>
+                <td class="num">@Format.Amount(r.DaysOver90)</td><td class="num">@Format.Amount(r.TotalOutstanding)</td></tr>
+        }
+        <tr class="total"><td>Total</td><td class="num">@Format.Amount(aging.Sum(r => r.NotYetDue))</td><td class="num">@Format.Amount(aging.Sum(r => r.Days130))</td>
+            <td class="num">@Format.Amount(aging.Sum(r => r.Days3160))</td><td class="num">@Format.Amount(aging.Sum(r => r.Days6190))</td>
+            <td class="num">@Format.Amount(aging.Sum(r => r.DaysOver90))</td><td class="num">@Format.Amount(aging.Sum(r => r.TotalOutstanding))</td></tr>
+        </tbody>
+    </table>
+    <p class="muted">Balances are in each document's own currency, aged by due date against today (@Format.Date(Format.Today), UTC).</p>
+}
+
+@if (Model.Valuation is { } val)
+{
+    <table>
+        <thead><tr><th>SKU</th><th>Product</th><th class="num">On hand</th><th class="num">Average unit cost</th><th class="num">Value</th></tr></thead>
+        <tbody>
+        @foreach (var r in val)
+        {
+            <tr><td><a href="/products/@r.ProductId">@r.Sku</a></td><td>@r.Name</td><td class="num">@Format.Qty(r.QtyOnHand)</td>
+                <td class="num">@Format.Amount(r.AvgUnitCost)</td><td class="num">@Format.Amount(r.ValueOnHand)</td></tr>
+        }
+        <tr class="total"><td colspan="4">Total value (@b)</td><td class="num">@Format.Amount(val.Sum(r => r.ValueOnHand))</td></tr>
+        </tbody>
+    </table>
+}

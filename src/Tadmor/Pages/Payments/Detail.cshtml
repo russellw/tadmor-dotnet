@@ -1,0 +1,48 @@
+@page "/{kind:regex(^(customer-payments|supplier-payments)$)}/{id:int}"
+@model Tadmor.Pages.Payments.DetailModel
+@{
+    var k = Model.Kind;
+    var p = Model.Payment;
+    var cur = (string?)p["currency_code"];
+    var status = (string)p["status"]!;
+    ViewData["Title"] = $"{Names.Title(k.Collection)} #{Model.Id}";
+    var appliedTo = (k.Sales ? "sales-invoices" : "purchase-bills", Model.Applications, cur);
+}
+<partial name="_Error" model="Model.Error" />
+<dl class="facts">
+    <dt>@Names.Party(k.Sales)</dt><dd>@Model.PartyName</dd>
+    <dt>Date</dt><dd>@Format.Raw(p["payment_date"])</dd>
+    <dt>Amount</dt><dd>@Format.Money((decimal?)p["amount"], cur)</dd>
+    <dt>Applied</dt><dd>@Format.Money((decimal?)p["amount_applied"], cur)</dd>
+    <dt>Unapplied</dt><dd>@Format.Money((decimal?)p["unapplied"], cur)</dd>
+    <dt>Method</dt><dd>@p["method"]</dd>
+    <dt>Reference</dt><dd>@p["reference"]</dd>
+    <dt>@(k.Sales ? "Deposit account" : "Payment account")</dt><dd>@Model.CashAccount</dd>
+    <dt>Status</dt><dd><span class="status">@status</span></dd>
+    @if (p["journal_entry_id"] is int je)
+    {
+        <dt>Journal entry</dt><dd><a href="/journal-entries/@je">Entry @je</a></dd>
+    }
+</dl>
+<div class="actions">
+    @if (status == "draft")
+    {
+        <form method="post" asp-page-handler="post" class="inline"><button type="submit">Post</button></form>
+        <a class="button secondary" href="/@k.Collection/@Model.Id/edit">Edit</a>
+        <form method="post" asp-page-handler="delete" class="inline" data-confirm="Delete this draft payment?">
+            <button type="submit" class="danger">Delete</button>
+        </form>
+    }
+    @if (status == "posted" && (decimal?)p["unapplied"] > 0)
+    {
+        <form method="post" asp-page-handler="apply" class="inline"><button type="submit">Apply to open @(k.Sales ? "invoices" : "bills")</button></form>
+    }
+    @if (status == "posted" && Model.Me.IsAdmin)
+    {
+        <form method="post" asp-page-handler="unpost" class="inline" data-confirm="Unpost this payment? Its applications are removed and a reversing entry is posted.">
+            <button type="submit" class="secondary">Unpost</button>
+        </form>
+    }
+</div>
+<h2>Applied to</h2>
+<partial name="_Applications" model="appliedTo" />

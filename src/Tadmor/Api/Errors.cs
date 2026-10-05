@@ -10,6 +10,9 @@ namespace Tadmor.Api;
 /// </summary>
 internal sealed class Errors(RequestDelegate next, ILogger<Errors> log)
 {
+    /// <summary>Where a UI page's refusal is left for the error page.</summary>
+    public const string ErrorKey = "tadmor.error";
+
     public async Task InvokeAsync(HttpContext ctx)
     {
         try
@@ -30,7 +33,20 @@ internal sealed class Errors(RequestDelegate next, ILogger<Errors> log)
             }
             ctx.Response.Clear();
             ctx.Features.Get<IHttpResponseFeature>()!.ReasonPhrase = null;
-            await Http.Error(refusal.Status, refusal.Message).ExecuteAsync(ctx);
+            if (ctx.Request.Path.StartsWithSegments("/api"))
+            {
+                await Http.Error(refusal.Status, refusal.Message).ExecuteAsync(ctx);
+                return;
+            }
+            // A UI page: show the error page in place, with the status.
+            ctx.Items[ErrorKey] = refusal;
+            ctx.Response.StatusCode = refusal.Status;
+            ctx.SetEndpoint(null);
+            ctx.Request.RouteValues.Clear();
+            ctx.Request.Path = "/error";
+            ctx.Request.QueryString = QueryString.Empty;
+            ctx.Request.Method = HttpMethods.Get;
+            await next(ctx);
         }
     }
 }

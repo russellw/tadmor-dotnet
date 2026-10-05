@@ -1,0 +1,83 @@
+@page "/"
+@model Tadmor.Pages.IndexModel
+@{
+    ViewData["Title"] = "Home";
+}
+<section class="start">
+    <a class="button" href="/sales-invoices/new">New invoice</a>
+    <a class="button" href="/customer-payments/new">New customer payment</a>
+    <a class="button" href="/purchase-bills/new">New bill</a>
+    <a class="button" href="/supplier-payments/new">New supplier payment</a>
+    <a class="button" href="/sales-orders/new">New sales order</a>
+    <a class="button" href="/purchase-orders/new">New purchase order</a>
+</section>
+<div class="cards">
+    @foreach (var (title, rows) in new[] { ("Receivables outstanding", Model.Receivables), ("Payables outstanding", Model.Payables) })
+    {
+        <section class="card">
+            <h2>@title</h2>
+            <table>
+                <thead><tr><th>Currency</th><th class="num">Outstanding</th><th class="num">Overdue</th></tr></thead>
+                <tbody>
+                @foreach (var r in rows)
+                {
+                    <tr><td>@r.CurrencyCode</td><td class="num">@Format.Amount(r.Total)</td><td class="num">@Format.Amount(r.Overdue)</td></tr>
+                }
+                @if (rows.Count == 0)
+                {
+                    <tr><td colspan="3" class="empty">Nothing outstanding.</td></tr>
+                }
+                </tbody>
+            </table>
+        </section>
+    }
+    <section class="card">
+        <h2>Open work</h2>
+        <table>
+            <tbody>
+                <tr><td><a href="/sales-orders">Open sales orders</a></td><td class="num">@Model.Counts.OpenSalesOrders</td></tr>
+                <tr><td><a href="/purchase-orders">Open purchase orders</a></td><td class="num">@Model.Counts.OpenPurchaseOrders</td></tr>
+                <tr><td><a href="/sales-invoices">Draft invoices</a></td><td class="num">@Model.Counts.DraftInvoices</td></tr>
+                <tr><td><a href="/purchase-bills">Draft bills</a></td><td class="num">@Model.Counts.DraftBills</td></tr>
+            </tbody>
+        </table>
+    </section>
+</div>
+<div class="cards">
+    <section class="card">
+        <h2>Most overdue invoices</h2>
+        <table>
+            <thead><tr><th>Invoice</th><th>Customer</th><th>Due</th><th class="num">Balance</th></tr></thead>
+            <tbody>
+            @foreach (var d in Model.Overdue)
+            {
+                <tr><td><a href="/sales-invoices/@d.Id">@d.Number</a></td><td>@d.PartyName</td><td>@Format.Date(d.DueDate)</td>
+                    <td class="num">@Format.Money(d.Balance, d.CurrencyCode)</td></tr>
+            }
+            @if (Model.Overdue.Count == 0)
+            {
+                <tr><td colspan="4" class="empty">No overdue invoices.</td></tr>
+            }
+            </tbody>
+        </table>
+        <p><a href="/reports/ar-aging">AR aging report</a></p>
+    </section>
+    <section class="card">
+        <h2>Bills due in the next 14 days</h2>
+        <table>
+            <thead><tr><th>Bill</th><th>Supplier</th><th>Due</th><th class="num">Balance</th></tr></thead>
+            <tbody>
+            @foreach (var d in Model.DueSoon)
+            {
+                <tr><td><a href="/purchase-bills/@d.Id">@d.Number</a></td><td>@d.PartyName</td><td>@Format.Date(d.DueDate)</td>
+                    <td class="num">@Format.Money(d.Balance, d.CurrencyCode)</td></tr>
+            }
+            @if (Model.DueSoon.Count == 0)
+            {
+                <tr><td colspan="4" class="empty">No bills due soon.</td></tr>
+            }
+            </tbody>
+        </table>
+        <p><a href="/reports/ap-aging">AP aging report</a></p>
+    </section>
+</div>

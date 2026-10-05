@@ -1,0 +1,29 @@
+@page "/stock-movements"
+@model Tadmor.Pages.Stock.ListModel
+@{
+    ViewData["Title"] = "Stock movements";
+}
+<p class="actions"><a class="button" href="/stock-movements/new">New movement</a></p>
+<table class="list">
+    <thead><tr><th>Date</th><th>Product</th><th>Warehouse</th><th>Type</th><th class="num">Quantity</th><th class="num">Unit cost</th>
+        <th class="num">Total cost</th><th>Posted</th></tr></thead>
+    <tbody>
+    @foreach (var m in Model.Rows)
+    {
+        <tr>
+            <td><a href="/stock-movements/@m.Id">@Format.Date(m.MovementDate)</a></td>
+            <td>@Model.Products.GetValueOrDefault(m.ProductId)</td>
+            <td>@Model.Warehouses.GetValueOrDefault(m.WarehouseId)</td>
+            <td>@m.MovementType</td>
+            <td class="num">@Format.Qty(m.Quantity)</td>
+            <td class="num">@Format.Amount(m.UnitCost)</td>
+            <td class="num">@Format.Money(m.TotalCost, Model.Base)</td>
+            <td>@(m.JournalEntryId is null ? "" : "Posted")</td>
+        </tr>
+    }
+    @if (Model.Rows.Count == 0)
+    {
+        <tr><td colspan="8" class="empty">None yet.</td></tr>
+    }
+    </tbody>
+</table>

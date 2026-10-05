@@ -1,0 +1,40 @@
+@page "/{kind:regex(^(customer-payments|supplier-payments)$)}/{id:int}/edit"
+@model Tadmor.Pages.Payments.EditModel
+@{
+    var k = Model.Kind;
+    ViewData["Title"] = Model.Id is null ? "New " + Names.Singular(k.Collection) : "Edit payment #" + Model.Id;
+    string V(string n) => Model.Values.GetValueOrDefault(n, "");
+}
+<form method="post" class="form">
+    <partial name="_Error" model="Model.Error" />
+    <label>@Names.Party(k.Sales)
+        <select name="@k.PartyField" required>
+            <option value=""></option>
+            @foreach (var p in Model.Parties) { <option value="@p.Id" selected="@(V(k.PartyField) == p.Id.ToString())">@p.Name</option> }
+        </select>
+    </label>
+    <label>Date <input type="date" name="payment_date" value="@V("payment_date")" required></label>
+    <label>Currency
+        <select name="currency_code" required>
+            @foreach (var c in Model.Currencies) { <option value="@c.Value" selected="@(V("currency_code") == c.Value)">@c.Label</option> }
+        </select>
+    </label>
+    <label>Amount <input name="amount" value="@V("amount")" inputmode="decimal" required></label>
+    <label>Method
+        <select name="method">
+            <option value=""></option>
+            @foreach (var m in new[] { "cash", "check", "card", "transfer", "other" }) { <option value="@m" selected="@(V("method") == m)">@m</option> }
+        </select>
+    </label>
+    <label>Reference <input name="reference" value="@V("reference")"></label>
+    <label>@(k.Sales ? "Deposit account" : "Payment account")
+        <select name="@k.CashField">
+            <option value=""></option>
+            @foreach (var a in Model.CashAccounts) { <option value="@a.Value" selected="@(V(k.CashField) == a.Value)">@a.Label</option> }
+        </select>
+    </label>
+    <p class="actions">
+        <button type="submit">@(Model.Id is null ? "Create draft" : "Save")</button>
+        <a href="/@k.Collection@(Model.Id is null ? "" : "/" + Model.Id)">Cancel</a>
+    </p>
+</form>

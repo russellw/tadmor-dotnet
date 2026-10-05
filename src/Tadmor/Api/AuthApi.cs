@@ -10,6 +10,9 @@ namespace Tadmor.Api;
 internal static class AuthApi
 {
     public const string Cookie = "tadmor_session";
+
+    /// <summary>The UI paths served without a session.</summary>
+    private static readonly HashSet<string> Anonymous = ["/login", "/error", "/healthz", "/readyz"];
     private const string UserKey = "tadmor.user";
 
     public static CurrentUser User(this HttpContext ctx) => (CurrentUser)ctx.Items[UserKey]!;
@@ -33,10 +36,20 @@ internal static class AuthApi
             ctx.Items[UserKey] = user;
         }
         var path = ctx.Request.Path;
-        if (path.StartsWithSegments("/api") && user is null
-            && !path.Equals("/api/auth/login") && !path.Equals("/api/auth/logout"))
+        if (user is null && path.StartsWithSegments("/api"))
         {
-            await Http.Error(401, "not signed in").ExecuteAsync(ctx);
+            if (!path.Equals("/api/auth/login") && !path.Equals("/api/auth/logout"))
+            {
+                await Http.Error(401, "not signed in").ExecuteAsync(ctx);
+                return;
+            }
+        }
+        else if (user is null && !Anonymous.Contains(path.Value ?? ""))
+        {
+            // The login screen is the only page shown without a session
+            // (spec/domain.md §13 G1); it returns here after signing in.
+            var back = HttpMethods.IsGet(ctx.Request.Method) && path != "/" ? path + ctx.Request.QueryString : "";
+            ctx.Response.Redirect(back == "" ? "/login" : "/login?next=" + Uri.EscapeDataString(back));
             return;
         }
         await next(ctx);

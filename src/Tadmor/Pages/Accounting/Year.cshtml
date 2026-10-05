@@ -1,0 +1,16 @@
+@page "/periods/years/{key:regex(^(new|\d+)$)}"
+@model Tadmor.Pages.Accounting.YearModel
+@{
+    ViewData["Title"] = Model.Key == "new" ? "New fiscal year" : "Fiscal year " + Model.V("name");
+}
+<form method="post" class="form">
+    <partial name="_Error" model="Model.Error" />
+    <label>Name <input name="name" value="@Model.V("name")" required></label>
+    <label>Start date <input type="date" name="start_date" value="@Model.V("start_date")" required></label>
+    <label>End date <input type="date" name="end_date" value="@Model.V("end_date")" required></label>
+    @if (Model.Key != "new")
+    {
+        <p class="muted">Status: @Model.V("status"). Years are closed and reopened from the periods screen.</p>
+    }
+    <p class="actions"><button type="submit">@(Model.Key == "new" ? "Create" : "Save")</button> <a href="/periods">Cancel</a></p>
+</form>

@@ -1,0 +1,28 @@
+@model LineForm
+@{
+    Dictionary<string, string> Blank() => LineForm.LineFields.ToDictionary(f => f, f => f == "quantity" ? "1" : f == "tax_rate" ? "0" : "");
+    var lines = Model.Lines.Count > 0 ? Model.Lines : [Blank()];
+    var template = (Model, Blank());
+}
+<script type="application/json" id="client-data">@Html.Raw(Model.ClientData().Replace("</", "<\\/"))</script>
+<table class="lines" id="lines">
+    <thead>
+        <tr><th>Product</th><th>Description</th><th class="num">Qty</th><th class="num">@(Model.Sales ? "Unit price" : "Unit cost")</th>
+            <th>@(Model.Sales ? "Revenue account" : "Expense account")</th><th>Tax code</th><th class="num">Tax %</th>
+            <th class="num">Subtotal</th><th class="num">Tax</th><th class="num">Total</th><th></th></tr>
+    </thead>
+    <tbody>
+    @foreach (var l in lines)
+    {
+        var row = (Model, l);
+        <partial name="_LineRow" model="row" />
+    }
+    </tbody>
+    <tfoot>
+        <tr><td colspan="7"><button type="button" class="secondary" id="add-line">Add line</button></td>
+            <td class="num" id="sum-subtotal"></td><td class="num" id="sum-tax"></td><td class="num" id="sum-total"></td><td></td></tr>
+    </tfoot>
+</table>
+<template id="line-template">
+    <partial name="_LineRow" model="template" />
+</template>

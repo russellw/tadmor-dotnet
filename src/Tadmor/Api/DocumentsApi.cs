@@ -104,6 +104,8 @@ internal static class DocumentsApi
         AddDocuments<PurchaseBill, PurchaseBillLine, PurchaseBillBalance>(services, DocKind.PurchaseBill);
         AddDocuments<SalesCreditNote, SalesCreditNoteLine, SalesCreditNoteBalance>(services, DocKind.SalesCreditNote);
         AddDocuments<PurchaseCreditNote, PurchaseCreditNoteLine, PurchaseCreditNoteBalance>(services, DocKind.PurchaseCreditNote);
+        services.AddKeyedScoped<IPayments>(PayKind.Customer.Collection, (sp, _) => sp.GetRequiredService<Payments<CustomerPayment>>());
+        services.AddKeyedScoped<IPayments>(PayKind.Supplier.Collection, (sp, _) => sp.GetRequiredService<Payments<SupplierPayment>>());
         services.AddScoped(sp => new Payments<CustomerPayment>(sp.GetRequiredService<TadmorDb>(), sp.GetRequiredService<Journal>(),
             sp.GetRequiredService<Settlement>(), PayKind.Customer));
         services.AddScoped(sp => new Payments<SupplierPayment>(sp.GetRequiredService<TadmorDb>(), sp.GetRequiredService<Journal>(),
@@ -111,6 +113,9 @@ internal static class DocumentsApi
     }
 
     private static void AddDocuments<TDoc, TLine, TBal>(IServiceCollection services, DocKind kind)
-        where TDoc : LineDocument where TLine : DocumentLine, new() where TBal : DocumentBalance =>
+        where TDoc : LineDocument where TLine : DocumentLine, new() where TBal : DocumentBalance
+    {
         services.AddScoped(sp => new Documents<TDoc, TLine, TBal>(sp.GetRequiredService<TadmorDb>(), sp.GetRequiredService<Journal>(), kind));
+        services.AddKeyedScoped<IDocuments>(kind.Collection, (sp, _) => sp.GetRequiredService<Documents<TDoc, TLine, TBal>>());
+    }
 }

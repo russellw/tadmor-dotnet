@@ -35,7 +35,8 @@ public sealed record PayKind
 /// Cr A/R; or Dr A/P, Cr cash), are applied to invoices or bills, and are
 /// unposted by an administrator, which removes their applications too.
 /// </summary>
-public sealed class Payments<TPay>(TadmorDb db, Journal journal, Settlement settlement, PayKind kind) where TPay : Payment, new()
+public sealed class Payments<TPay>(TadmorDb db, Journal journal, Settlement settlement, PayKind kind) : IPayments
+    where TPay : Payment, new()
 {
     public PayKind Kind => kind;
 

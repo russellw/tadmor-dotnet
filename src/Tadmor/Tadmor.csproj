@@ -16,6 +16,10 @@
     <EmbeddedResource Include="../../db/migrations/*.up.sql" LogicalName="migrations/%(Filename)%(Extension)" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Served from beside the executable, in builds as in releases. -->
+    <Content Update="wwwroot/**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="Tadmor.Tests" />
   </ItemGroup>
 </Project>

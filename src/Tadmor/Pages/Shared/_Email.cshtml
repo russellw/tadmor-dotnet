@@ -1,0 +1,12 @@
+@model Tadmor.Pages.Docs.EmailBox
+<form method="post" asp-page-handler="email" class="filters">
+    <label>Email to (blank for the address on file)
+        <input name="to" value="@Model.To" placeholder="name@example.com, …">
+    </label>
+    <button type="submit" class="secondary">Send by email</button>
+</form>
+@if (Model.Sent is not null)
+{
+    <p class="notice">Sent to @Model.Sent.</p>
+}
+<partial name="_Error" model="Model.Error" />

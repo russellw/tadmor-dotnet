@@ -1,0 +1,29 @@
+@page "/{kind:regex(^(sales-orders|purchase-orders)$)}"
+@model Tadmor.Pages.Orders.ListModel
+@{
+    var k = Model.Kind;
+    ViewData["Title"] = Names.Plural(k.Collection);
+}
+<p class="actions"><a class="button" href="/@k.Collection/new">New @Names.Singular(k.Collection)</a></p>
+<table class="list">
+    <thead><tr><th>Number</th><th>@Names.Party(k.Sales)</th><th>Date</th><th class="num">Total</th><th>Status</th>
+        <th>@(k.Sales ? "Invoiced" : "Billed")</th><th>@(k.Sales ? "Shipped" : "Received")</th></tr></thead>
+    <tbody>
+    @foreach (var o in Model.Rows)
+    {
+        <tr>
+            <td><a href="/@k.Collection/@o["id"]">@o["order_number"]</a></td>
+            <td>@Model.PartyName(o[k.PartyField])</td>
+            <td>@Format.Raw(o["order_date"])</td>
+            <td class="num">@Format.Money((decimal?)o["total"], (string?)o["currency_code"])</td>
+            <td><span class="status">@o["status"]</span></td>
+            <td>@o[k.Charged]</td>
+            <td>@o[k.Moved]</td>
+        </tr>
+    }
+    @if (Model.Rows.Count == 0)
+    {
+        <tr><td colspan="7" class="empty">None yet.</td></tr>
+    }
+    </tbody>
+</table>

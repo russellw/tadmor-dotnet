@@ -23,13 +23,19 @@ a conversation first. Packages are pinned by lockfile and vendored under vendor/
 build restores offline from there and never contacts nuget.org.
 
 Working on it:
+Business rules live in src/Tadmor/Services/, shared by the JSON API (Api/) and the UI.
+Services throw ServiceException carrying the spec's HTTP status; refusals by the schema
+are mapped by SQLSTATE (DatabaseErrors). Never put a rule in an endpoint.
+Money arithmetic that rounds (base amounts, FX differences) is done in SQL, where numeric
+is exact; C# decimal holds only 28-29 digits. Raw SQL goes through the Sql helpers with
+{0}-style parameters; table and column names come only from the kind descriptors.
 spec/, conformance/, and db/migrations/ are copies from tadmor (spec/UPSTREAM);
 never edit them here. Re-export from tadmor with spec/export.sh.
 Map citext columns with HasColumnType("citext"); as text, comparisons are case-sensitive.
 Test that a query sends a parameter, not a literal: EF Core inlines constants.
 Change packages only through Directory.Packages.props and `make vendor-sync`; commit
 vendor/, vendor/lock.txt, and the packages.lock.json files together.
-Before committing, run `make test`; once the API exists, `make conformance` must pass too.
+Before committing, run `make test` and `make conformance`; both must pass.
 
 Version control:
 Commit directly to the default branch. Do not create feature branches.

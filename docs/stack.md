@@ -248,6 +248,33 @@ Set up and measured on 2026-10-05.
 - **Passwords** use ASP.NET Core Identity's `PasswordHasher`, which is
   in the shared framework (PBKDF2-HMAC-SHA512, its v3 format). The scheme
   is not contract (`spec/domain.md` §12).
+- **The JSON API** is Minimal API endpoints (`Api/`) over services
+  (`Services/`), which the UI will share. Request bodies are read by
+  `Services/Input`, which applies the spec's field rules: a wrong JSON
+  type or a missing required field is a 400, an unacceptable value a
+  422, and decimals are rounded to their stored scale, half away from
+  zero, before use. Responses are snake_case, with decimals as strings.
+  Refusals by the schema are mapped to 409 or 422 by SQLSTATE, as in
+  tadmor-java. The session check wraps all of `/api/`, so an unknown path
+  without a session is a 401, and a catch-all route makes unknown paths
+  and methods a JSON 404.
+- **One generic service per family.** The four line documents, the two
+  payments, the two orders, and the four settlers (payments and credit
+  notes) each share a service, parameterized by a descriptor of table
+  names, JSON field names, and ledger side. EF Core maps the per-kind
+  tables onto shared base entities.
+- **Posting is set-based SQL.** Journal lines are built with
+  `INSERT … SELECT` over the document lines, so that base amounts,
+  `round(amount × rate, 4)`, are computed by Postgres, whose numeric
+  arithmetic is exact. C#'s `decimal` holds only 28 to 29 significant
+  digits, too few for an amount near 10^15 times a rate with 8 places.
+  Lists and reads use LINQ, or SQL over the schema's views.
+- **Printing** ports tadmor's hand-written PDF writer and layout
+  (`Printing/`), with the Helvetica widths generated from tadmor's table.
+  Email uses `System.Net.Mail.SmtpClient`, enabled by `SMTP_ADDR` (plus
+  `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`). With credentials it requires
+  STARTTLS. Without `SMTP_ADDR`, sending is refused with 501, as in the
+  conformance run.
 - **Tests** are MSTest on Microsoft.Testing.Platform. The test project
   references the `Microsoft.AspNetCore.App` framework as the server does.
   Without that, the SDK does not prune the `Microsoft.Extensions.*`

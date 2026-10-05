@@ -206,11 +206,11 @@ public sealed class Country
 public abstract class LineDocument
 {
     public int Id { get; set; }
-    public required string Number { get; set; }
+    public string Number { get; set; } = "";
     public int PartyId { get; set; }
     public DateOnly Date { get; set; }
     public DateOnly? DueDate { get; set; }
-    public required string CurrencyCode { get; set; }
+    public string CurrencyCode { get; set; } = "";
     public string Status { get; set; } = "draft";
     public int? PeriodId { get; set; }
     public int? JournalEntryId { get; set; }
@@ -237,7 +237,7 @@ public abstract class DocumentLine
     public int DocumentId { get; set; }
     public int LineNo { get; set; }
     public int? ProductId { get; set; }
-    public required string Description { get; set; }
+    public string Description { get; set; } = "";
     public decimal Quantity { get; set; }
     public decimal Price { get; set; }
     public int? AccountId { get; set; }
@@ -263,7 +263,7 @@ public abstract class Payment
     public int Id { get; set; }
     public int PartyId { get; set; }
     public DateOnly PaymentDate { get; set; }
-    public required string CurrencyCode { get; set; }
+    public string CurrencyCode { get; set; } = "";
     public decimal Amount { get; set; }
     public string? Method { get; set; }
     public string? Reference { get; set; }
@@ -299,12 +299,12 @@ public sealed class PurchaseCreditApplication : Application;
 public abstract class Order
 {
     public int Id { get; set; }
-    public required string OrderNumber { get; set; }
+    public string OrderNumber { get; set; } = "";
     public int PartyId { get; set; }
     public DateOnly OrderDate { get; set; }
     /// <summary>The expected ship (sales) or receipt (purchases) date.</summary>
     public DateOnly? ExpectedDate { get; set; }
-    public required string CurrencyCode { get; set; }
+    public string CurrencyCode { get; set; } = "";
     public string Status { get; set; } = "draft";
     public decimal Subtotal { get; set; }
     public decimal TaxTotal { get; set; }

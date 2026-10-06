@@ -4,6 +4,11 @@
     <!-- Release builds are self-contained linux-x64 (docs/stack.md,
          "Deployment"); listing the RID here keeps it in the lock file. -->
     <RuntimeIdentifiers>linux-x64</RuntimeIdentifiers>
+    <!-- wwwroot is served by UseStaticFiles. The static web assets manifest
+         is unused, and it records each file's Last-Modified time, which
+         differs from one clone to the next and so broke byte-identical
+         releases (docs/stack.md, "Hermetic build"). -->
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />

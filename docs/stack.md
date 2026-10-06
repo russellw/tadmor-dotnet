@@ -221,9 +221,16 @@ Set up and measured on 2026-10-05.
   `.nuget/`, each built (`make release`, then `make build`) in an
   `ubuntu:26.04` container with Ubuntu's `dotnet-sdk-10.0` 10.0.112,
   `--network=none`, and an empty `HOME`. Both builds succeeded, and their
-  outputs were byte-identical: all 339 files of the self-contained
+  outputs were byte-identical: all 340 files of the self-contained
   release, and `Tadmor.dll` and `Tadmor.Tests.dll`. `Deterministic` and
   `ContinuousIntegrationBuild` are set in `Directory.Build.props`.
+  First measured at the scaffold, and measured again on 2026-10-06 with
+  the UI complete. That run found one difference: the SDK's static web
+  assets manifest, `Tadmor.staticwebassets.endpoints.json`, records each
+  `wwwroot` file's Last-Modified time, which a fresh clone sets to the
+  checkout time. The server serves `wwwroot` with `UseStaticFiles` and
+  never reads that manifest, so `Tadmor.csproj` turns static web assets
+  off, and the release is identical again.
 - **Telemetry off.** The Makefile sets `DOTNET_CLI_TELEMETRY_OPTOUT`,
   `TESTINGPLATFORM_TELEMETRY_OPTOUT` and
   `DOTNET_CLI_WORKLOAD_UPDATE_NOTIFY_DISABLE`, so neither the CLI nor
